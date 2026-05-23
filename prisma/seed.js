@@ -79,12 +79,16 @@ async function main() {
 
   // 8. Seed Default Admin User
   const bcrypt = require('bcryptjs');
-  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+  if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD) {
+    throw new Error('ADMIN_EMAIL and ADMIN_PASSWORD must be set before seeding.');
+  }
+
+  const adminPassword = process.env.ADMIN_PASSWORD;
   const hashedPassword = bcrypt.hashSync(adminPassword, 10);
   
   const defaultAdmin = {
     name: 'AUSTRC Administrator',
-    email: process.env.ADMIN_EMAIL || 'admin@gmail.com',
+    email: process.env.ADMIN_EMAIL,
     passwordHash: hashedPassword,
     role: 'admin',
     avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80'

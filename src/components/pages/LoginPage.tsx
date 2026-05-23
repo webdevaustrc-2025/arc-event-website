@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { Mail, Lock, ArrowRight, Cpu, Eye, EyeOff, User } from 'lucide-react';
 import { Link } from '@/lib/router-compat';
@@ -15,6 +15,19 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const adminVerified = params.get('adminVerified');
+
+    if (adminVerified === '1') {
+      setSuccess('Admin email verified. Please log in again.');
+    }
+
+    if (adminVerified === '0') {
+      setError('Verification link is invalid or expired.');
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +80,13 @@ export default function LoginPage() {
         });
 
         if (res?.error) {
-          setError('Invalid email or password.');
+          if (res.error === 'ADMIN_EMAIL_VERIFICATION_REQUIRED') {
+            setSuccess('Verification email sent. Confirm it from your inbox, then log in again.');
+          } else if (res.error === 'SMTP_NOT_CONFIGURED') {
+            setError('Admin email verification is not configured yet.');
+          } else {
+            setError('Invalid email or password.');
+          }
         } else {
           const sessionRes = await fetch('/api/auth/session');
           const session = await sessionRes.json();

@@ -5,6 +5,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { loginSchema } from "@/lib/validations/auth";
+import { isAdminEmail, sendAdminVerificationEmail } from "@/lib/admin-verification";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
@@ -18,7 +19,7 @@ export const authOptions: NextAuthOptions = {
           name: profile.name,
           email: profile.email,
           image: profile.picture,
-          role: profile.email === (process.env.ADMIN_EMAIL || "admin@gmail.com") ? "admin" : "user",
+          role: "user",
         };
       },
     }),
@@ -40,7 +41,6 @@ export const authOptions: NextAuthOptions = {
           where: { email },
         });
 
-        // Fixed Admin Login bypass or standard DB-registered admin check
         if (!user || !user.passwordHash) {
           throw new Error("Invalid credentials");
         }
@@ -49,6 +49,11 @@ export const authOptions: NextAuthOptions = {
 
         if (!passwordMatch) {
           throw new Error("Invalid credentials");
+        }
+
+        if (isAdminEmail(user.email) && user.role === "admin" && !user.emailVerified) {
+          await sendAdminVerificationEmail(user.email);
+          throw new Error("ADMIN_EMAIL_VERIFICATION_REQUIRED");
         }
 
         return {
