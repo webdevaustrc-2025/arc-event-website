@@ -1,0 +1,112 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           Int            @id @default(autoincrement())
+  name         String
+  email        String         @unique
+  passwordHash String
+  role         String         @default("user") // "user" or "admin"
+  avatarUrl    String?
+  createdAt    DateTime       @default(now())
+  
+  registrations Registration[]
+  certificates  Certificate[]
+  leaderboard   Leaderboard[]
+}
+
+model Segment {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  rules       String
+  prizePool   String
+  status      String   @default("active") // "active" or "inactive"
+  imageUrl    String?
+
+  registrations Registration[]
+  schedule      Schedule[]
+  certificates  Certificate[]
+}
+
+model Registration {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  segmentId     Int
+  teamName      String
+  status        String   @default("pending") // "pending", "approved", "rejected"
+  paymentStatus String   @default("unpaid")  // "unpaid", "paid"
+  qrToken       String   @unique
+  createdAt     DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  segment Segment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+}
+
+model Schedule {
+  id           Int      @id @default(autoincrement())
+  segmentId    Int?
+  title        String
+  startTime    DateTime
+  endTime      DateTime
+  venue        String
+  displayOrder Int      @default(0)
+
+  segment Segment? @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+}
+
+model Sponsor {
+  id           Int     @id @default(autoincrement())
+  name         String
+  logoUrl      String
+  tier         String  // "gold", "silver", "bronze"
+  websiteUrl   String?
+  displayOrder Int     @default(0)
+}
+
+model FAQ {
+  id           Int    @id @default(autoincrement())
+  question     String
+  answer       String
+  displayOrder Int    @default(0)
+}
+
+model PastEvent {
+  id          Int      @id @default(autoincrement())
+  name        String
+  date        DateTime
+  description String
+  imageUrl    String?
+}
+
+model Certificate {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  segmentId Int
+  fileUrl   String
+  issuedAt  DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  segment Segment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+}
+
+model Leaderboard {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  points Int
+  rank   Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

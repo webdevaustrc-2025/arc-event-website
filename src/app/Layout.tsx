@@ -1,28 +1,24 @@
-import React from 'react';
-import { Navbar } from './components/Navbar';
-import { Footer } from './components/Footer';
-import { GlassOverlay } from './components/GlassOverlay';
-import { Outlet } from 'react-router-dom';
-import { useTheme } from 'next-themes';
+import type { Metadata } from "next";
+import "@/styles/index.css";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
-export const Layout = () => {
-  const { theme } = useTheme();
-
-  return (
-    <div
-      className={`min-h-screen overflow-x-hidden antialiased relative transition-colors duration-300 ${
-        theme === 'dark'
-          ? 'bg-[#0A0A0F] text-[#F5F5F0] selection:bg-[#588157] selection:text-[#F5F5F0]'
-          : 'bg-[#dad7cd] text-[#1a1a14] selection:bg-[#3a5a40] selection:text-white'
-      }`}
-      style={{ fontFamily: "'Inter', sans-serif" }}
-    >
-      <GlassOverlay />
-      <Navbar />
-      <main className="relative z-10">
-        <Outlet />
-        <Footer />
-      </main>
-    </div>
-  );
+export const metadata: Metadata = {
+  title: "AUSTRC - RoboFest",
+  description: "AUST Robotics Club Event Management - Bangladesh's premier university robotics championship",
 };
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body style={{ margin: 0 }}>
+        <ThemeProvider attribute="class" defaultTheme="dark">
+          {children}
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}
