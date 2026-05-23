@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { LayoutDashboard, Calendar, Trophy, Award, QrCode, User, LogOut, Home, Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { AnimatedMenuButton } from '@/components/AnimatedMenuButton';
+import { signOut } from 'next-auth/react';
 
 const menuItems = [
   { name: 'Overview', path: '/dashboard', icon: LayoutDashboard },
@@ -140,6 +141,7 @@ export const DashboardLayout = () => {
 
               {/* Logout Button */}
               <button
+                onClick={() => signOut({ callbackUrl: '/' })}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 w-full ${
                   isDark
                     ? 'text-[#9A9A8E] hover:bg-red-500/10 hover:text-red-400'
@@ -237,6 +239,7 @@ export const DashboardLayout = () => {
 
                     {/* Logout Button */}
                     <button
+                      onClick={() => signOut({ callbackUrl: '/' })}
                       className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 w-full ${
                         isDark
                           ? 'text-[#9A9A8E] hover:bg-red-500/10 hover:text-red-400'

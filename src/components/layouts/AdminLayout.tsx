@@ -16,6 +16,7 @@ import {
   Home
 } from 'lucide-react';
 import { AnimatedMenuButton } from '@/components/AnimatedMenuButton';
+import { signOut } from 'next-auth/react';
 
 const navItems = [
   { path: '/admin', icon: LayoutDashboard, label: 'Overview', end: true },
@@ -131,6 +132,7 @@ export const AdminLayout = () => {
 
             {/* Exit Admin Button */}
             <button
+              onClick={() => signOut({ callbackUrl: '/' })}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 w-full ${
                 isDark
                   ? 'text-[#9A9A8E] hover:bg-red-500/10 hover:text-red-400'
@@ -200,6 +202,7 @@ export const AdminLayout = () => {
             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
           <button
+            onClick={() => signOut({ callbackUrl: '/' })}
             title="Exit Admin"
             className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
               isDark ? 'text-[#9A9A8E] hover:bg-red-500/10 hover:text-red-400' : 'text-[#8a8a7a] hover:bg-red-500/10 hover:text-red-600'
@@ -291,6 +294,7 @@ export const AdminLayout = () => {
 
                   {/* Exit Admin Button */}
                   <button
+                    onClick={() => signOut({ callbackUrl: '/' })}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 w-full ${
                       isDark
                         ? 'text-[#9A9A8E] hover:bg-red-500/10 hover:text-red-400'
