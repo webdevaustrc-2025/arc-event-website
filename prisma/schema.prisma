@@ -1,44 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-generator client {
-  provider = "prisma-client-js"
 }
 
 model User {
   id            Int            @id @default(autoincrement())
   name          String
   email         String         @unique
-  passwordHash  String?        // Nullable because OAuth users do not have a password
-  role          String         @default("user") // "user" or "admin"
+  passwordHash  String?
+  role          String         @default("user")
   avatarUrl     String?
-  emailVerified DateTime?
   createdAt     DateTime       @default(now())
-  
+  emailVerified DateTime?
   accounts      Account[]
-  sessions      Session[]
-  registrations Registration[]
   certificates  Certificate[]
   leaderboard   Leaderboard[]
+  registrations Registration[]
+  sessions      Session[]
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             Int
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String? @db.Text
-  access_token       String? @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String? @db.Text
-  session_state      String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -60,17 +58,16 @@ model VerificationToken {
 }
 
 model Segment {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String
-  rules       String
-  prizePool   String
-  status      String   @default("active") // "active" or "inactive"
-  imageUrl    String?
-
+  id            Int            @id @default(autoincrement())
+  name          String
+  description   String
+  rules         String
+  prizePool     String
+  status        String         @default("active")
+  imageUrl      String?
+  certificates  Certificate[]
   registrations Registration[]
   schedule      Schedule[]
-  certificates  Certificate[]
 }
 
 model Registration {
@@ -78,13 +75,12 @@ model Registration {
   userId        Int
   segmentId     Int
   teamName      String
-  status        String   @default("pending") // "pending", "approved", "rejected"
-  paymentStatus String   @default("unpaid")  // "unpaid", "paid"
+  status        String   @default("pending")
+  paymentStatus String   @default("unpaid")
   qrToken       String   @unique
   createdAt     DateTime @default(now())
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  segment Segment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  segment       Segment  @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Schedule {
@@ -95,15 +91,14 @@ model Schedule {
   endTime      DateTime
   venue        String
   displayOrder Int      @default(0)
-
-  segment Segment? @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+  segment      Segment? @relation(fields: [segmentId], references: [id])
 }
 
 model Sponsor {
   id           Int     @id @default(autoincrement())
   name         String
   logoUrl      String
-  tier         String  // "gold", "silver", "bronze"
+  tier         String
   websiteUrl   String?
   displayOrder Int     @default(0)
 }
@@ -129,9 +124,8 @@ model Certificate {
   segmentId Int
   fileUrl   String
   issuedAt  DateTime @default(now())
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  segment Segment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  segment   Segment  @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Leaderboard {
@@ -139,8 +133,7 @@ model Leaderboard {
   userId Int
   points Int
   rank   Int
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Setting {
