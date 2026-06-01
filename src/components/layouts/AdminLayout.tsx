@@ -297,9 +297,8 @@ export const AdminLayout = () => {
         )}
       </AnimatePresence>
 
-      {/* Main Content Area */}
-      <main className="lg:ml-64 md:ml-[60px] min-h-screen pt-20 lg:pt-4">
-        <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+      <main className="flex-1 min-w-0 lg:ml-64 md:ml-[60px] min-h-screen pt-20 lg:pt-4">
+        <div className="p-4 sm:p-6 lg:p-8 w-full">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
