@@ -13,6 +13,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { adminFetch } from "@/lib/admin-api";
 import {
   Dialog,
   DialogContent,
@@ -89,20 +90,7 @@ const faqData = [
   { id: 3, question: "Are there any registration fees?", answer: "Yes, early bird registration is $50...", category: "Payment" },
 ];
 
-// ─── adminFetch helper ────────────────────────────────────────────────────────
 
-async function adminFetch(url: string, options?: RequestInit) {
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(options?.headers ?? {}),
-    },
-  });
-  const data = await res.json().catch(() => ({ message: "Unknown error" }));
-  if (!res.ok) throw new Error(data.message ?? "Request failed");
-  return data;
-}
 
 // ─── Empty form ───────────────────────────────────────────────────────────────
 
