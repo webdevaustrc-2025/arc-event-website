@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Plus, Minus } from 'lucide-react';
 
@@ -32,6 +32,26 @@ const faqs = [
 
 export const FAQ = () => {
   const [open, setOpen] = useState<number | null>(0);
+  const [items, setItems] = useState<{ q: string; a: string }[]>([]);
+
+  useEffect(() => {
+    async function fetchFaqs() {
+      try {
+        const res = await fetch('/api/faq');
+        if (!res.ok) throw new Error('Failed to fetch');
+        const data = await res.json();
+        if (data && data.length > 0) {
+          setItems(data.map((item: any) => ({ q: item.question, a: item.answer })));
+        } else {
+          setItems(faqs);
+        }
+      } catch (error) {
+        console.error('Error fetching FAQs:', error);
+        setItems(faqs);
+      }
+    }
+    fetchFaqs();
+  }, []);
 
   return (
     <section id="faq" className="py-32 relative overflow-hidden">
@@ -160,12 +180,12 @@ export const FAQ = () => {
           />
 
           <div className="p-2">
-            {faqs.map((faq, i) => (
+            {items.map((faq, i) => (
               <div
                 key={i}
                 className="relative overflow-hidden"
                 style={{
-                  borderBottom: i < faqs.length - 1 ? '1px solid rgba(88,160,88,0.08)' : 'none',
+                  borderBottom: i < items.length - 1 ? '1px solid rgba(88,160,88,0.08)' : 'none',
                 }}
               >
                 {/* Active item highlight */}

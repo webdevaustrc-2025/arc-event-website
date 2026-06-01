@@ -52,6 +52,25 @@ interface SponsorForm {
   displayOrder: number;
 }
 
+interface FAQItem {
+  id: number;
+  question: string;
+  answer: string;
+  displayOrder: number;
+}
+
+interface FAQForm {
+  question: string;
+  answer: string;
+  displayOrder: number;
+}
+
+const EMPTY_FAQ_FORM: FAQForm = {
+  question: "",
+  answer: "",
+  displayOrder: 0,
+};
+
 // ─── Fallback dummy data (never removed) ──────────────────────────────────────
 
 const FALLBACK_SPONSORS: Sponsor[] = [
@@ -81,12 +100,12 @@ const FALLBACK_SPONSORS: Sponsor[] = [
   },
 ];
 
-// ─── FAQ dummy data (unchanged) ───────────────────────────────────────────────
+// ─── FAQ fallback data ───────────────────────────────────────────────
 
-const faqData = [
-  { id: 1, question: "What is ARC 3.0?", answer: "ARC 3.0 is the premier university robotics event...", category: "General" },
-  { id: 2, question: "How do I register a team?", answer: "You can register a team by visiting the registration page...", category: "Registration" },
-  { id: 3, question: "Are there any registration fees?", answer: "Yes, early bird registration is $50...", category: "Payment" },
+const FALLBACK_FAQS: FAQItem[] = [
+  { id: 1, question: "What is ARC 3.0?", answer: "ARC 3.0 is the premier university robotics event...", displayOrder: 0 },
+  { id: 2, question: "How do I register a team?", answer: "You can register a team by visiting the registration page...", displayOrder: 1 },
+  { id: 3, question: "Are there any registration fees?", answer: "Yes, early bird registration is $50...", displayOrder: 2 },
 ];
 
 // ─── adminFetch helper ────────────────────────────────────────────────────────
@@ -156,6 +175,21 @@ export default function AdminContentPage() {
   const [deleteTarget, setDeleteTarget] = useState<Sponsor | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // ── FAQ state ─────────────────────────────────────────────────────────────
+
+  const [faqs, setFaqs] = useState<FAQItem[]>([]);
+  const [faqsLoading, setFaqsLoading] = useState(false);
+  const [usingFaqFallback, setUsingFaqFallback] = useState(false);
+
+  const [faqDialogOpen, setFaqDialogOpen] = useState(false);
+  const [faqEditTarget, setFaqEditTarget] = useState<FAQItem | null>(null);
+  const [faqForm, setFaqForm] = useState<FAQForm>(EMPTY_FAQ_FORM);
+  const [faqSubmitting, setFaqSubmitting] = useState(false);
+
+  const [faqDeleteTarget, setFaqDeleteTarget] = useState<FAQItem | null>(null);
+  const [faqDeleteOpen, setFaqDeleteOpen] = useState(false);
+  const [faqDeleting, setFaqDeleting] = useState(false);
 
   // ── Fetch sponsors ────────────────────────────────────────────────────────
 
@@ -268,6 +302,109 @@ export default function AdminContentPage() {
     }
   }
 
+  // ── Fetch FAQs ────────────────────────────────────────────────────────────
+
+  const fetchFAQs = useCallback(async () => {
+    setFaqsLoading(true);
+    try {
+      const data: FAQItem[] = await adminFetch("/api/admin/faq");
+      setFaqs(data);
+      setUsingFaqFallback(false);
+    } catch {
+      setFaqs(FALLBACK_FAQS);
+      setUsingFaqFallback(true);
+      toast.warning("Could not reach database. Showing fallback FAQs.");
+    } finally {
+      setFaqsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "faq") fetchFAQs();
+  }, [activeTab, fetchFAQs]);
+
+  // ── FAQ Dialog handlers ───────────────────────────────────────────────────
+
+  function openFaqCreate() {
+    setFaqEditTarget(null);
+    setFaqForm(EMPTY_FAQ_FORM);
+    setFaqDialogOpen(true);
+  }
+
+  function openFaqEdit(faq: FAQItem) {
+    setFaqEditTarget(faq);
+    setFaqForm({
+      question: faq.question,
+      answer: faq.answer,
+      displayOrder: faq.displayOrder,
+    });
+    setFaqDialogOpen(true);
+  }
+
+  // ── FAQ Submit ────────────────────────────────────────────────────────────
+
+  async function handleFaqSubmit() {
+    if (!faqForm.question.trim() || !faqForm.answer.trim()) {
+      toast.error("Question and Answer are required.");
+      return;
+    }
+
+    setFaqSubmitting(true);
+    try {
+      const payload = {
+        ...faqForm,
+        displayOrder: Number(faqForm.displayOrder),
+      };
+
+      if (faqEditTarget) {
+        await adminFetch(`/api/admin/faq/${faqEditTarget.id}`, {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+        toast.success("FAQ updated successfully.");
+      } else {
+        await adminFetch("/api/admin/faq", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        toast.success("FAQ created successfully.");
+      }
+
+      setFaqDialogOpen(false);
+      fetchFAQs();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setFaqSubmitting(false);
+    }
+  }
+
+  // ── FAQ Delete ────────────────────────────────────────────────────────────
+
+  function confirmFaqDelete(faq: FAQItem) {
+    setFaqDeleteTarget(faq);
+    setFaqDeleteOpen(true);
+  }
+
+  async function handleFaqDelete() {
+    if (!faqDeleteTarget) return;
+    setFaqDeleting(true);
+    try {
+      await adminFetch(`/api/admin/faq/${faqDeleteTarget.id}`, {
+        method: "DELETE",
+      });
+      toast.success("FAQ deleted.");
+      setFaqDeleteOpen(false);
+      fetchFAQs();
+    } catch (err: unknown) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to delete FAQ."
+      );
+    } finally {
+      setFaqDeleting(false);
+    }
+  }
+
   // ── Tabs ──────────────────────────────────────────────────────────────────
 
   const tabs = [
@@ -298,10 +435,19 @@ export default function AdminContentPage() {
           </p>
         </div>
         <button
-          onClick={
-            activeTab === "sponsors" && !usingFallback ? openCreate : undefined
+          onClick={() => {
+            if (activeTab === "faq" && !usingFaqFallback) {
+              openFaqCreate();
+            } else if (activeTab === "sponsors" && !usingFallback) {
+              openCreate();
+            }
+          }}
+          disabled={
+            (activeTab === "faq" && usingFaqFallback) ||
+            (activeTab === "sponsors" && usingFallback) ||
+            activeTab === "announcements"
           }
-          className="px-4 py-2 rounded-lg font-semibold transition-all shadow-[0_2px_12px_rgba(0,0,0,0.15)] flex items-center gap-2 bg-[#3a5a40] text-white hover:bg-[#344e41]"
+          className="px-4 py-2 rounded-lg font-semibold transition-all shadow-[0_2px_12px_rgba(0,0,0,0.15)] flex items-center gap-2 bg-[#3a5a40] text-white hover:bg-[#344e41] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus className="w-4 h-4" />
           Add Content
@@ -333,66 +479,96 @@ export default function AdminContentPage() {
       {/* Tab content */}
       <div className={`p-6 rounded-2xl border ${cardBg}`}>
 
-        {/* ── FAQ tab (unchanged) ── */}
+        {/* ── FAQ tab ── */}
         {activeTab === "faq" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center mb-6">
-              <h2
-                className={`text-xl font-bold ${textColor}`}
-                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-              >
-                Frequently Asked Questions
-              </h2>
-              <button className="text-sm font-medium hover:underline text-[#588157] hover:text-[#a3b18a]">
-                Reorder Questions
-              </button>
-            </div>
-            <div className="space-y-4">
-              {faqData.map((faq) => (
-                <div
-                  key={faq.id}
-                  className={`p-5 rounded-xl border transition-all hover:border-gray-400 group flex items-start justify-between gap-4 ${itemBg}`}
+              <div>
+                <h2
+                  className={`text-xl font-bold ${textColor}`}
+                  style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span
-                        className={`px-2 py-0.5 rounded-md text-xs font-medium border ${
-                          isDark
-                            ? "bg-white/5 text-gray-300 border-white/10"
-                            : "bg-gray-200 text-gray-700 border-gray-300"
-                        }`}
-                      >
-                        {faq.category}
-                      </span>
-                      <h4 className={`font-semibold text-lg ${textColor}`}>
-                        {faq.question}
-                      </h4>
-                    </div>
-                    <p className={`${mutedText} text-sm`}>{faq.answer}</p>
-                  </div>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      className={`p-2 rounded-lg transition-colors ${
-                        isDark
-                          ? "hover:bg-white/10 text-gray-300"
-                          : "hover:bg-gray-200 text-gray-600"
-                      }`}
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      className={`p-2 rounded-lg transition-colors ${
-                        isDark
-                          ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
-                          : "bg-red-50 hover:bg-red-100 text-red-600"
-                      }`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                  Frequently Asked Questions
+                </h2>
+                {usingFaqFallback && (
+                  <p className="text-xs mt-1 text-amber-500">
+                    Showing fallback FAQs — database is empty or unreachable.
+                  </p>
+                )}
+              </div>
+              {!usingFaqFallback && (
+                <button
+                  onClick={openFaqCreate}
+                  className="text-sm font-medium hover:underline text-[#588157] hover:text-[#a3b18a] flex items-center gap-1"
+                >
+                  <Plus className="w-3 h-3" />
+                  Add FAQ
+                </button>
+              )}
             </div>
+
+            {/* Loading skeleton */}
+            {faqsLoading && (
+              <div className="space-y-4 animate-pulse">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className={`p-5 rounded-xl border ${itemBg} h-24`} />
+                ))}
+              </div>
+            )}
+
+            {/* FAQ List */}
+            {!faqsLoading && (
+              <div className="space-y-4">
+                {faqs.map((faq) => (
+                  <div
+                    key={faq.id}
+                    className={`p-5 rounded-xl border transition-all hover:border-gray-400 group flex items-start justify-between gap-4 ${itemBg}`}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span
+                          className={`px-2 py-0.5 rounded-md text-xs font-semibold border ${
+                            isDark
+                              ? "bg-white/5 text-gray-300 border-white/10"
+                              : "bg-gray-200 text-gray-700 border-gray-300"
+                          }`}
+                        >
+                          Order: {faq.displayOrder}
+                        </span>
+                        <h4 className={`font-semibold text-lg ${textColor}`}>
+                          {faq.question}
+                        </h4>
+                      </div>
+                      <p className={`${mutedText} text-sm`}>{faq.answer}</p>
+                    </div>
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => openFaqEdit(faq)}
+                        className={`p-2 rounded-lg transition-colors ${
+                          isDark
+                            ? "hover:bg-white/10 text-gray-300"
+                            : "hover:bg-gray-200 text-gray-600"
+                        }`}
+                        title="Edit FAQ"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => confirmFaqDelete(faq)}
+                        className={`p-2 rounded-lg transition-colors ${
+                          isDark
+                            ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
+                            : "bg-red-50 hover:bg-red-100 text-red-600"
+                        }`}
+                        title="Delete FAQ"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -747,6 +923,134 @@ export default function AdminContentPage() {
             >
               {deleting && <Loader2 className="w-3 h-3 animate-spin" />}
               {deleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ── FAQ Create / Edit Dialog ── */}
+      <Dialog open={faqDialogOpen} onOpenChange={setFaqDialogOpen}>
+        <DialogContent
+          className={`sm:max-w-md ${
+            isDark
+              ? "bg-[#111116] border-white/10 text-white"
+              : "bg-white text-gray-900"
+          }`}
+        >
+          <DialogHeader>
+            <DialogTitle className={textColor}>
+              {faqEditTarget ? "Edit FAQ" : "Add FAQ"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-1">
+              <label className={`text-sm font-medium ${mutedText}`}>
+                Question *
+              </label>
+              <input
+                value={faqForm.question}
+                onChange={(e) =>
+                  setFaqForm({ ...faqForm, question: e.target.value })
+                }
+                placeholder="e.g. What is the team size limit?"
+                className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className={`text-sm font-medium ${mutedText}`}>
+                Answer *
+              </label>
+              <textarea
+                value={faqForm.answer}
+                onChange={(e) =>
+                  setFaqForm({ ...faqForm, answer: e.target.value })
+                }
+                placeholder="Describe the answer in detail..."
+                rows={4}
+                className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors resize-none ${inputClass}`}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className={`text-sm font-medium ${mutedText}`}>
+                Display Order
+              </label>
+              <input
+                type="number"
+                value={faqForm.displayOrder}
+                onChange={(e) =>
+                  setFaqForm({ ...faqForm, displayOrder: Number(e.target.value) })
+                }
+                className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <button
+              onClick={() => setFaqDialogOpen(false)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isDark
+                  ? "bg-white/10 hover:bg-white/20 text-white"
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-900"
+              }`}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleFaqSubmit}
+              disabled={faqSubmitting}
+              className="px-4 py-2 rounded-lg text-sm font-semibold bg-[#3a5a40] hover:bg-[#344e41] text-white transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              {faqSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
+              {faqSubmitting
+                ? faqEditTarget
+                  ? "Saving..."
+                  : "Creating..."
+                : faqEditTarget
+                ? "Save Changes"
+                : "Create FAQ"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── FAQ Delete confirmation ── */}
+      <AlertDialog open={faqDeleteOpen} onOpenChange={setFaqDeleteOpen}>
+        <AlertDialogContent
+          className={
+            isDark
+              ? "bg-[#111116] border-white/10 text-white"
+              : "bg-white text-gray-900"
+          }
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle className={textColor}>
+              Delete FAQ
+            </AlertDialogTitle>
+            <AlertDialogDescription className={mutedText}>
+              Are you sure you want to delete this FAQ question? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className={
+                isDark
+                  ? "bg-white/10 hover:bg-white/20 text-white border-white/10"
+                  : ""
+              }
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleFaqDelete}
+              disabled={faqDeleting}
+              className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 flex items-center gap-2"
+            >
+              {faqDeleting && <Loader2 className="w-3 h-3 animate-spin" />}
+              {faqDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

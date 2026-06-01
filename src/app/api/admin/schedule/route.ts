@@ -6,6 +6,7 @@ import { z } from "zod";
 
 const scheduleCreateSchema = z.object({
   title: z.string().min(1, "Title is required"),
+  day: z.string().min(1, "Day is required").default("Day 1"),
   startTime: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Invalid start time format",
   }),
@@ -83,6 +84,7 @@ export async function POST(request: Request) {
     const schedule = await prisma.schedule.create({
       data: {
         title: data.title,
+        day: data.day,
         startTime: new Date(data.startTime),
         endTime: new Date(data.endTime),
         venue: data.venue,

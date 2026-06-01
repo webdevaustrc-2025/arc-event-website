@@ -97,6 +97,7 @@ model Schedule {
   id           Int      @id @default(autoincrement())
   segmentId    Int?
   title        String
+  day          String   @default("Day 1")
   startTime    DateTime
   endTime      DateTime
   venue        String

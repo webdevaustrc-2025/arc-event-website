@@ -8,6 +8,7 @@ interface DatabaseScheduleItem {
   id: number;
   segmentId: number | null;
   title: string;
+  day: string;
   startTime: string;
   endTime: string;
   venue: string;
@@ -65,13 +66,18 @@ export default function SchedulePage({ dbSchedule }: { dbSchedule?: any[] }) {
     return now >= new Date(event.startTime) && now <= new Date(event.endTime);
   };
 
-  // Group events by date dynamically
-  const uniqueDates = Array.from(new Set(events.map(e => new Date(e.startTime).toDateString()))).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-  const days = uniqueDates.map((_, i) => `Day ${i + 1}`);
+  // Helper to extract day number for sorting
+  const getDayNumber = (dayStr: string) => {
+    const match = dayStr.match(/\d+/);
+    return match ? parseInt(match[0], 10) : 999;
+  };
 
-  const activeDateIndex = days.indexOf(activeDay);
-  const activeDateStr = activeDateIndex !== -1 ? uniqueDates[activeDateIndex] : null;
-  const activeDayEvents = activeDateStr ? events.filter(e => new Date(e.startTime).toDateString() === activeDateStr) : [];
+  // Group events by database Day column
+  const days = Array.from(new Set(events.map(e => e.day || 'Day 1'))).sort((a, b) => getDayNumber(a) - getDayNumber(b));
+
+  const activeDayEvents = events
+    .filter(e => (e.day || 'Day 1') === activeDay)
+    .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
 
   // Reset activeDay if events load and the current activeDay is invalid (e.g. no longer exists)
   useEffect(() => {

@@ -8,6 +8,7 @@ interface ScheduleItem {
   id: number;
   segmentId: number | null;
   title: string;
+  day: string;
   startTime: string;
   endTime: string;
   venue: string;
@@ -31,6 +32,7 @@ export default function AdminSchedulePage() {
 
   const [form, setForm] = useState({
     title: '',
+    day: 'Day 1',
     startTime: '',
     endTime: '',
     venue: '',
@@ -95,6 +97,7 @@ export default function AdminSchedulePage() {
     setEditingEvent(null);
     setForm({
       title: '',
+      day: 'Day 1',
       startTime: '',
       endTime: '',
       venue: '',
@@ -108,6 +111,7 @@ export default function AdminSchedulePage() {
     setEditingEvent(event);
     setForm({
       title: event.title,
+      day: event.day || 'Day 1',
       startTime: toDatetimeLocal(event.startTime),
       endTime: toDatetimeLocal(event.endTime),
       venue: event.venue,
@@ -189,15 +193,27 @@ export default function AdminSchedulePage() {
     }
   };
 
-  // Group events by date dynamically
-  const uniqueDates = Array.from(new Set(events.map(e => new Date(e.startTime).toDateString()))).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+  // Helper to extract day number for sorting
+  const getDayNumber = (dayStr: string) => {
+    const match = dayStr.match(/\d+/);
+    return match ? parseInt(match[0], 10) : 999;
+  };
 
-  const dayGroups = uniqueDates.map((dateStr, index) => {
-    const dayEvents = events.filter(e => new Date(e.startTime).toDateString() === dateStr);
+  // Group events by database Day column
+  const uniqueDays = Array.from(new Set(events.map(e => e.day || 'Day 1'))).sort((a, b) => getDayNumber(a) - getDayNumber(b));
+
+  const dayGroups = uniqueDays.map((dayName) => {
+    const dayEvents = events.filter(e => (e.day || 'Day 1') === dayName);
+    // Sort events within the day by start time
+    const sortedEvents = [...dayEvents].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+    const firstEvent = sortedEvents[0];
+    const dateStr = firstEvent 
+      ? new Date(firstEvent.startTime).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+      : 'TBA';
     return {
-      day: `Day ${index + 1}`,
-      date: new Date(dateStr).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-      events: dayEvents
+      day: dayName,
+      date: dateStr,
+      events: sortedEvents
     };
   });
 
@@ -352,6 +368,24 @@ export default function AdminSchedulePage() {
                       {seg.name} (Segment)
                     </option>
                   ))}
+                </select>
+              </div>
+
+              {/* Day */}
+              <div className="space-y-1">
+                <label className={`text-xs font-semibold uppercase tracking-wider ${mutedText}`}>Day</label>
+                <select
+                  value={form.day}
+                  onChange={(e) => setForm({ ...form, day: e.target.value })}
+                  className={`w-full px-3.5 py-2 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#588157]/40 ${
+                    isDark ? 'bg-[#18181f] border-white/10 text-white' : 'bg-gray-50 border-gray-200 text-black'
+                  }`}
+                >
+                  <option value="Day 1">Day 1</option>
+                  <option value="Day 2">Day 2</option>
+                  <option value="Day 3">Day 3</option>
+                  <option value="Day 4">Day 4</option>
+                  <option value="Day 5">Day 5</option>
                 </select>
               </div>
 

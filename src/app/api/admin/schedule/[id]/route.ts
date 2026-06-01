@@ -6,6 +6,7 @@ import { z } from "zod";
 
 const scheduleUpdateSchema = z.object({
   title: z.string().min(1, "Title is required").optional(),
+  day: z.string().min(1, "Day is required").optional(),
   startTime: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Invalid start time format",
   }).optional(),
@@ -68,6 +69,7 @@ export async function PUT(
       where: { id: scheduleId },
       data: {
         title: data.title,
+        day: data.day,
         startTime: data.startTime ? new Date(data.startTime) : undefined,
         endTime: data.endTime ? new Date(data.endTime) : undefined,
         venue: data.venue,
