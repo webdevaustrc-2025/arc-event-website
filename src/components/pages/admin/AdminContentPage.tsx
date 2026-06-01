@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
-import { useTheme } from "next-themes";
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
 import {
   HelpCircle,
   HandHeart,
@@ -130,13 +130,7 @@ function getTierStyle(tier: Tier) {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function AdminContentPage() {
-  const { theme } = useTheme();
-
-  // ── Fix hydration: don't render theme-dependent classes until mounted ────
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
-  const isDark = mounted ? theme === "dark" : false;
+  const { isDark, mounted } = useResolvedTheme();
 
   const cardBg = isDark ? "bg-[#111116] border-white/[0.07]" : "bg-white border-black/[0.08]";
   const itemBg = isDark ? "bg-[#18181f] border-white/[0.07]" : "bg-[#F0EDE6] border-black/[0.06]";

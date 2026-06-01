@@ -2,13 +2,12 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Plus, Filter } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
 import { EventCard } from '@/components/dashboard/EventCard';
 import { Link } from '@/lib/router-compat';
 
 export default function MyEventsPage() {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark' || !theme;
+  const { isDark } = useResolvedTheme();
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'ongoing' | 'completed'>('all');
 
   const myEvents = [

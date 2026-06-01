@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, Link } from '@/lib/router-compat';
 import { motion, AnimatePresence } from 'motion/react';
 import { LayoutDashboard, Calendar, Trophy, Award, QrCode, User, LogOut, Home, Sun, Moon } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
 import { AnimatedMenuButton } from '@/components/AnimatedMenuButton';
 import { signOut } from 'next-auth/react';
 
@@ -18,8 +18,7 @@ const menuItems = [
 
 export const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
-  const isDark = theme === 'dark' || !theme;
+  const { theme, setTheme, isDark } = useResolvedTheme();
 
   // Close sidebar on route change (mobile)
   useEffect(() => {

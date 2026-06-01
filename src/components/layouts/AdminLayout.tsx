@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, Link } from '@/lib/router-compat';
-import { useTheme } from 'next-themes';
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   LayoutDashboard,
@@ -28,9 +28,9 @@ const navItems = [
 ];
 
 export const AdminLayout = () => {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, isDark } = useResolvedTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const isDark = theme === 'dark' || !theme;
+
 
   // Close sidebar on resize to desktop
   useEffect(() => {

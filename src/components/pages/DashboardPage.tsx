@@ -2,13 +2,12 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Bot, CheckCircle2, Star, Award, Bell, Trophy, Calendar, MapPin, ChevronRight } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { EventCard } from '@/components/dashboard/EventCard';
 
 export default function DashboardPage() {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark' || !theme;
+  const { isDark } = useResolvedTheme();
 
   const getGreeting = () => {
     const hour = new Date().getHours();

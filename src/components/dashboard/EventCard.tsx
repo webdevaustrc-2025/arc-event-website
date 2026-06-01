@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Calendar, MapPin, Clock } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
 import { Link } from '@/lib/router-compat';
 
 interface EventCardProps {
@@ -16,8 +16,7 @@ interface EventCardProps {
 }
 
 export const EventCard: React.FC<EventCardProps> = ({ id, title, date, time, location, status, image }) => {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark' || !theme;
+  const { isDark } = useResolvedTheme();
 
   const statusColors = {
     upcoming: { bg: 'rgba(59, 130, 246, 0.15)', border: 'rgba(59, 130, 246, 0.3)', text: '#60a5fa' },

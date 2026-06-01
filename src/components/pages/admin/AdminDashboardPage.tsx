@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import { useTheme } from 'next-themes';
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
 import { Users, TrendingUp, CheckCircle, AlertCircle, Clock, Calendar as CalendarIcon } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -15,9 +15,8 @@ const data = [
 ];
 
 export default function AdminDashboardPage() {
-  const { theme } = useTheme();
+  const { isDark } = useResolvedTheme();
 
-  const isDark = theme === 'dark';
   const cardBg = isDark ? 'bg-[#111116] border-white/[0.07]' : 'bg-white border-black/[0.08]';
   const textColor = isDark ? 'text-[#F5F5F0]' : 'text-[#1a1a14]';
   const mutedText = isDark ? 'text-[#9A9A8E]' : 'text-[#4a4a40]';

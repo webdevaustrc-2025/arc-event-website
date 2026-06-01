@@ -2,7 +2,7 @@
 import React, { useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Download, Maximize2 } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
 import { motion } from 'motion/react';
 
 interface QRGeneratorProps {
@@ -12,8 +12,7 @@ interface QRGeneratorProps {
 }
 
 export const QRGenerator: React.FC<QRGeneratorProps> = ({ eventName, userName, uniqueId }) => {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark' || !theme;
+  const { isDark } = useResolvedTheme();
   const qrRef = useRef<HTMLDivElement>(null);
   const [qrSize, setQrSize] = React.useState(256);
 

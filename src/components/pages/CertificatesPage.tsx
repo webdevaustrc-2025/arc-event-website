@@ -2,11 +2,10 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Download, Eye, Award, Calendar, Trophy } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
 
 export default function CertificatesPage() {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark' || !theme;
+  const { isDark } = useResolvedTheme();
   const [selectedCert, setSelectedCert] = useState<number | null>(null);
 
   const certificates = [

@@ -1,12 +1,11 @@
 "use client";
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { useTheme } from 'next-themes';
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
 import { QRGenerator } from '@/components/dashboard/QRGenerator';
 
 export default function QRPassPage() {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark' || !theme;
+  const { isDark } = useResolvedTheme();
 
   const [selectedEvent, setSelectedEvent] = useState('robo-soccer');
 

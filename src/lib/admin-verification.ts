@@ -29,8 +29,12 @@ function getSmtpConfig() {
 }
 
 export function isAdminEmail(email: string) {
-  return email.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase();
+  const normalizedEmail = email.toLowerCase();
+  return (
+    normalizedEmail === process.env.ADMIN_EMAIL?.toLowerCase()
+    );
 }
+
 
 export async function sendAdminVerificationEmail(email: string) {
   const token = crypto.randomBytes(32).toString("hex");

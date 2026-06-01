@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { LucideIcon } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
 
 interface StatCardProps {
   label: string;
@@ -13,8 +13,7 @@ interface StatCardProps {
 }
 
 export const StatCard: React.FC<StatCardProps> = ({ label, value, icon: Icon, trend, color = 'text-[#588157]' }) => {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark' || !theme;
+  const { isDark } = useResolvedTheme();
 
   return (
     <motion.div

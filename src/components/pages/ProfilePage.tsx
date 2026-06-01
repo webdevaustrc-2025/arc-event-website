@@ -2,11 +2,10 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Camera, Mail, Phone, MapPin, Building2, Save, User as UserIcon } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
 
 export default function ProfilePage() {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark' || !theme;
+  const { isDark } = useResolvedTheme();
 
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState({

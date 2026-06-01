@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import { useTheme } from 'next-themes';
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
 
 interface AnimatedMenuButtonProps {
   isOpen: boolean;
@@ -8,8 +8,7 @@ interface AnimatedMenuButtonProps {
 }
 
 export const AnimatedMenuButton: React.FC<AnimatedMenuButtonProps> = ({ isOpen, onClick }) => {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark' || !theme;
+  const { isDark } = useResolvedTheme();
 
   return (
     <button

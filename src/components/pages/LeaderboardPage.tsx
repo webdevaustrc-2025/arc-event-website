@@ -2,11 +2,10 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Trophy, Medal, Award, Filter } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
 
 export default function LeaderboardPage() {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark' || !theme;
+  const { isDark } = useResolvedTheme();
   const [selectedEvent, setSelectedEvent] = useState('overall');
 
   const events = [

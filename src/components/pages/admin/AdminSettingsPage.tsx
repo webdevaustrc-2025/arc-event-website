@@ -1,12 +1,10 @@
 "use client";
 import React from 'react';
-import { useTheme } from 'next-themes';
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
 import { Settings, Shield, Bell, Key, Database, Globe } from 'lucide-react';
 
 export default function AdminSettingsPage() {
-  const { theme } = useTheme();
-
-  const isDark = theme === 'dark';
+  const { isDark } = useResolvedTheme();
   const cardBg = isDark ? 'bg-[#111116] border-white/[0.07]' : 'bg-white border-black/[0.08]';
   const itemBg = isDark ? 'bg-[#18181f] border-white/[0.07]' : 'bg-[#F0EDE6] border-black/[0.08]';
   const textColor = isDark ? 'text-[#F5F5F0]' : 'text-[#1a1a14]';
