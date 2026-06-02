@@ -1,46 +1,126 @@
 "use client";
-import React, { useState } from 'react';
-import { motion } from 'motion/react';
-import { ArrowRight, ShieldCheck, User, Phone, Building2, Users, Trophy, Mail } from 'lucide-react';
-import { Link } from '@/lib/router-compat';
+import React, { useState, useEffect } from "react";
+import { motion } from "motion/react";
+import {
+  ArrowRight,
+  ShieldCheck,
+  User,
+  Phone,
+  Building2,
+  Users,
+  Trophy,
+  Mail,
+} from "lucide-react";
+import { Link } from "@/lib/router-compat";
+import { toast } from "sonner";
+
+// Specification Rule: Keep dummy segments array as fallback
+const FALLBACK_SEGMENTS = [
+  { id: 1, name: "Line Following Robot" },
+  { id: 2, name: "Maze Solving Robot" },
+  { id: 3, name: "Robo Soccer" },
+  { id: 4, name: "Project Showcase" },
+  { id: 5, name: "Innovation Challenge" },
+];
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
-    teamName: '',
-    institution: '',
-    teamLeader: '',
-    email: '',
-    phone: '',
-    members: '',
-    segment: '',
+    teamName: "",
+    institution: "",
+    teamLeader: "",
+    email: "",
+    phone: "",
+    members: "",
+    segmentId: "", // changed from 'segment' to map directly to segment DB id
   });
 
-  const segments = [
-    'Line Following Robot',
-    'Maze Solving Robot',
-    'Robo Soccer',
-    'Project Showcase',
-    'Innovation Challenge',
-  ];
+  const [segments, setSegments] = useState<any[]>([]);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // 1. Fetch Segment List dynamically on Mount with Dual-Source Pattern Fallback
+  useEffect(() => {
+    const fetchSegments = async () => {
+      try {
+        const res = await fetch("/api/public/segments");
+        if (res.ok) {
+          const data = await res.json();
+          setSegments(data && data.length > 0 ? data : FALLBACK_SEGMENTS);
+        } else {
+          setSegments(FALLBACK_SEGMENTS);
+        }
+      } catch (error) {
+        console.error("Public segment load failed, falling back:", error);
+        setSegments(FALLBACK_SEGMENTS);
+      }
+    };
+    fetchSegments();
+  }, []);
+
+  // 2. Submit Handler utilizing backend endpoint
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Registration submitted:', formData);
-    alert('Registration submitted successfully! You will receive a confirmation email shortly.');
+    setSubmitting(true);
+
+    try {
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          segmentId: parseInt(formData.segmentId, 10),
+          teamName: formData.teamName,
+          institution: formData.institution,
+          teamLeader: formData.teamLeader,
+          email: formData.email,
+          phone: formData.phone,
+          members: parseInt(formData.members, 10),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to complete registration.");
+      }
+
+      toast.success(
+        "Registration submitted successfully! You can verify your status in your dashboard.",
+      );
+
+      // Reset form upon successful registration
+      setFormData({
+        teamName: "",
+        institution: "",
+        teamLeader: "",
+        email: "",
+        phone: "",
+        members: "",
+        segmentId: "",
+      });
+    } catch (error: any) {
+      console.error("Registration submit error:", error);
+      toast.error(error.message || "An error occurred during submission.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   return (
     <div className="min-h-screen relative flex items-center justify-center pt-24 pb-12 px-4 sm:px-6">
-      {/* No glow blob — clean flat design */}
-
       <div className="relative z-10 w-full max-w-3xl">
         {/* Nav Link */}
         <div className="text-center mb-8">
-          <Link to="/" className="text-gray-400 text-sm tracking-widest hover:text-white transition-colors">
+          <Link
+            to="/"
+            className="text-gray-400 text-sm tracking-widest hover:text-white transition-colors"
+          >
             ← BACK TO HOME
           </Link>
         </div>
@@ -63,7 +143,8 @@ export default function RegisterPage() {
               Register Your <span className="text-[#a3b18a]">Team</span>
             </h1>
             <p className="text-gray-400">
-              Join Bangladesh's most anticipated university robotics championship
+              Join Bangladesh's most anticipated university robotics
+              championship
             </p>
           </div>
 
@@ -75,7 +156,10 @@ export default function RegisterPage() {
             <div className="space-y-5">
               {/* Team Name */}
               <div>
-                <label htmlFor="teamName" className="block text-sm font-medium text-gray-300 mb-2">
+                <label
+                  htmlFor="teamName"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
                   Team Name *
                 </label>
                 <div className="relative">
@@ -88,7 +172,7 @@ export default function RegisterPage() {
                     value={formData.teamName}
                     onChange={handleChange}
                     className="w-full bg-[#18181f] border border-white/[0.07] rounded-lg px-12 py-3 text-[#F5F5F0] placeholder:text-[#5A5A52] focus:outline-none focus:border-[#588157] transition-colors"
-                    style={{ fontSize: '16px' }}
+                    style={{ fontSize: "16px" }}
                     placeholder="Enter your team name"
                   />
                 </div>
@@ -96,7 +180,10 @@ export default function RegisterPage() {
 
               {/* Institution */}
               <div>
-                <label htmlFor="institution" className="block text-sm font-medium text-gray-300 mb-2">
+                <label
+                  htmlFor="institution"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
                   Institution *
                 </label>
                 <div className="relative">
@@ -109,7 +196,7 @@ export default function RegisterPage() {
                     value={formData.institution}
                     onChange={handleChange}
                     className="w-full bg-[#18181f] border border-white/[0.07] rounded-lg px-12 py-3 text-[#F5F5F0] placeholder:text-[#5A5A52] focus:outline-none focus:border-[#588157] transition-colors"
-                    style={{ fontSize: '16px' }}
+                    style={{ fontSize: "16px" }}
                     placeholder="Enter your university/college name"
                   />
                 </div>
@@ -117,7 +204,10 @@ export default function RegisterPage() {
 
               {/* Team Leader */}
               <div>
-                <label htmlFor="teamLeader" className="block text-sm font-medium text-gray-300 mb-2">
+                <label
+                  htmlFor="teamLeader"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
                   Team Leader Name *
                 </label>
                 <div className="relative">
@@ -130,7 +220,7 @@ export default function RegisterPage() {
                     value={formData.teamLeader}
                     onChange={handleChange}
                     className="w-full bg-[#18181f] border border-white/[0.07] rounded-lg px-12 py-3 text-[#F5F5F0] placeholder:text-[#5A5A52] focus:outline-none focus:border-[#588157] transition-colors"
-                    style={{ fontSize: '16px' }}
+                    style={{ fontSize: "16px" }}
                     placeholder="Enter team leader's full name"
                   />
                 </div>
@@ -139,7 +229,10 @@ export default function RegisterPage() {
               {/* Email & Phone Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-300 mb-2"
+                  >
                     Email *
                   </label>
                   <div className="relative">
@@ -152,14 +245,17 @@ export default function RegisterPage() {
                       value={formData.email}
                       onChange={handleChange}
                       className="w-full bg-[#18181f] border border-white/[0.07] rounded-lg px-12 py-3 text-[#F5F5F0] placeholder:text-[#5A5A52] focus:outline-none focus:border-[#588157] transition-colors"
-                      style={{ fontSize: '16px' }}
+                      style={{ fontSize: "16px" }}
                       placeholder="team@example.com"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-2">
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm font-medium text-gray-300 mb-2"
+                  >
                     Phone *
                   </label>
                   <div className="relative">
@@ -172,7 +268,7 @@ export default function RegisterPage() {
                       value={formData.phone}
                       onChange={handleChange}
                       className="w-full bg-[#18181f] border border-white/[0.07] rounded-lg px-12 py-3 text-[#F5F5F0] placeholder:text-[#5A5A52] focus:outline-none focus:border-[#588157] transition-colors"
-                      style={{ fontSize: '16px' }}
+                      style={{ fontSize: "16px" }}
                       placeholder="+880 1XXX-XXXXXX"
                     />
                   </div>
@@ -181,7 +277,10 @@ export default function RegisterPage() {
 
               {/* Number of Members */}
               <div>
-                <label htmlFor="members" className="block text-sm font-medium text-gray-300 mb-2">
+                <label
+                  htmlFor="members"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
                   Number of Team Members *
                 </label>
                 <input
@@ -194,29 +293,38 @@ export default function RegisterPage() {
                   value={formData.members}
                   onChange={handleChange}
                   className="w-full bg-[#18181f] border border-white/[0.07] rounded-lg px-4 py-3 text-[#F5F5F0] placeholder:text-[#5A5A52] focus:outline-none focus:border-[#588157] transition-colors"
-                  style={{ fontSize: '16px' }}
+                  style={{ fontSize: "16px" }}
                   placeholder="e.g., 4"
                 />
               </div>
 
               {/* Segment Selection */}
               <div>
-                <label htmlFor="segment" className="block text-sm font-medium text-gray-300 mb-2">
+                <label
+                  htmlFor="segmentId"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
                   Competition Segment *
                 </label>
                 <select
-                  id="segment"
-                  name="segment"
+                  id="segmentId"
+                  name="segmentId"
                   required
-                  value={formData.segment}
+                  value={formData.segmentId}
                   onChange={handleChange}
                   className="w-full bg-[#18181f] border border-white/[0.07] rounded-lg px-4 py-3 text-[#F5F5F0] focus:outline-none focus:border-[#588157] transition-colors"
-                  style={{ fontSize: '16px' }}
+                  style={{ fontSize: "16px" }}
                 >
-                  <option value="" className="bg-[#18181f]">Select a segment</option>
+                  <option value="" className="bg-[#18181f]">
+                    Select a segment
+                  </option>
                   {segments.map((seg) => (
-                    <option key={seg} value={seg} className="bg-[#18181f]">
-                      {seg}
+                    <option
+                      key={seg.id}
+                      value={seg.id}
+                      className="bg-[#18181f]"
+                    >
+                      {seg.name}
                     </option>
                   ))}
                 </select>
@@ -225,16 +333,19 @@ export default function RegisterPage() {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-[#3a5a40] text-white py-4 rounded-lg font-semibold hover:bg-[#344e41] transition-all hover:scale-[1.02] shadow-[0_2px_12px_rgba(0,0,0,0.20)] flex items-center justify-center gap-2 mt-6"
+                disabled={submitting}
+                className="w-full bg-[#3a5a40] text-white py-4 rounded-lg font-semibold hover:bg-[#344e41] transition-all hover:scale-[1.02] shadow-[0_2px_12px_rgba(0,0,0,0.20)] flex items-center justify-center gap-2 mt-6 disabled:opacity-50"
               >
-                Submit Registration
+                {submitting
+                  ? "Submitting Registration..."
+                  : "Submit Registration"}
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>
 
             {/* Footer Note */}
             <p className="text-sm text-[#5A5A52] mt-6 text-center">
-              Already registered?{' '}
+              Already registered?{" "}
               <Link to="/login" className="text-[#588157] hover:underline">
                 Login here
               </Link>
