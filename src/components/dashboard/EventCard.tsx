@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import { motion } from 'motion/react';
-import { Calendar, MapPin, Clock } from 'lucide-react';
+import { Calendar, MapPin, Clock, Hash, Users, CreditCard } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Link } from '@/lib/router-compat';
 
@@ -13,9 +13,29 @@ interface EventCardProps {
   location: string;
   status: 'upcoming' | 'ongoing' | 'completed';
   image?: string;
+  segmentId?: number | null;
+  registrationCode?: string;
+  registrationDate?: string;
+  teamName?: string;
+  registrationStatus?: string;
+  paymentStatus?: string;
 }
 
-export const EventCard: React.FC<EventCardProps> = ({ id, title, date, time, location, status, image }) => {
+export const EventCard: React.FC<EventCardProps> = ({
+  id,
+  title,
+  date,
+  time,
+  location,
+  status,
+  image,
+  segmentId,
+  registrationCode,
+  registrationDate,
+  teamName,
+  registrationStatus,
+  paymentStatus,
+}) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark' || !theme;
 
@@ -78,10 +98,28 @@ export const EventCard: React.FC<EventCardProps> = ({ id, title, date, time, loc
         </h3>
 
         <div className="space-y-3 mb-6">
+          {registrationCode && (
+            <div className="flex items-center gap-2.5 text-sm">
+              <Hash className="w-4 h-4 text-[#588157]" />
+              <span className={isDark ? 'text-[#9A9A8E]' : 'text-[#8a8a7a]'}>{registrationCode}</span>
+            </div>
+          )}
+          {teamName && (
+            <div className="flex items-center gap-2.5 text-sm">
+              <Users className="w-4 h-4 text-[#588157]" />
+              <span className={isDark ? 'text-[#9A9A8E]' : 'text-[#8a8a7a]'}>{teamName}</span>
+            </div>
+          )}
           <div className="flex items-center gap-2.5 text-sm">
             <Calendar className="w-4 h-4 text-[#588157]" />
             <span className={isDark ? 'text-[#9A9A8E]' : 'text-[#8a8a7a]'}>{date}</span>
           </div>
+          {registrationDate && (
+            <div className="flex items-center gap-2.5 text-sm">
+              <Calendar className="w-4 h-4 text-[#588157]" />
+              <span className={isDark ? 'text-[#9A9A8E]' : 'text-[#8a8a7a]'}>Registered {registrationDate}</span>
+            </div>
+          )}
           <div className="flex items-center gap-2.5 text-sm">
             <Clock className="w-4 h-4 text-[#588157]" />
             <span className={isDark ? 'text-[#9A9A8E]' : 'text-[#8a8a7a]'}>{time}</span>
@@ -90,12 +128,20 @@ export const EventCard: React.FC<EventCardProps> = ({ id, title, date, time, loc
             <MapPin className="w-4 h-4 text-[#588157]" />
             <span className={isDark ? 'text-[#9A9A8E]' : 'text-[#8a8a7a]'}>{location}</span>
           </div>
+          {(registrationStatus || paymentStatus) && (
+            <div className="flex items-center gap-2.5 text-sm">
+              <CreditCard className="w-4 h-4 text-[#588157]" />
+              <span className={`capitalize ${isDark ? 'text-[#9A9A8E]' : 'text-[#8a8a7a]'}`}>
+                {[registrationStatus, paymentStatus].filter(Boolean).join(' / ')}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Actions */}
         <div className="flex gap-3">
           <Link
-            to={`/event/${id}`}
+            to={`/event/${segmentId ?? id}`}
             className="flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold text-center transition-all duration-300 hover:scale-105"
             style={{
               background: 'linear-gradient(135deg, #3a5a40 0%, #344e41 100%)',

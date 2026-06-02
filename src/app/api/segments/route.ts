@@ -7,9 +7,24 @@ export async function GET() {
       select: {
         id: true,
         name: true,
+        description: true,
+        rules: true,
+        prizePool: true,
+        category: true,
+        type: true,
+        difficulty: true,
+        teamSize: true,
+        fee: true,
+        deadline: true,
+        location: true,
+        scheduleText: true,
+        ruleBookUrl: true,
+        highlights: true,
+        status: true,
+        imageUrl: true,
       },
       orderBy: {
-        name: "asc",
+        id: "asc",
       },
     });
 

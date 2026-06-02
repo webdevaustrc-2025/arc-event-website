@@ -1,10 +1,27 @@
 "use client";
 import React from 'react';
 import { motion } from 'motion/react';
-import { useParams, Link, useNavigate } from '@/lib/router-compat';
-import { Calendar, MapPin, Clock, Trophy, Medal, ArrowLeft, FileText, Users, Zap, Target, Shield, Award } from 'lucide-react';
+import { Link, useNavigate } from '@/lib/router-compat';
+import { Calendar, MapPin, Clock, Trophy, Medal, ArrowLeft, FileText, Zap, Target, Shield, Award } from 'lucide-react';
 
-const eventData: any = {
+interface DbSegment {
+  id: number;
+  name: string;
+  description: string;
+  rules?: string | null;
+  prizePool?: string | null;
+  category?: string | null;
+  teamSize?: string | null;
+  fee?: string | null;
+  deadline?: string | null;
+  location?: string | null;
+  scheduleText?: string | null;
+  imageUrl?: string | null;
+  ruleBookUrl?: string | null;
+  highlights?: string[];
+}
+
+const eventData: Record<string, unknown> = {
   1: {
     id: 1,
     title: 'Robo Soccer',
@@ -85,34 +102,30 @@ const eventData: any = {
   },
 };
 
-export default function EventDetailsPage({ dbSegment }: { dbSegment?: any }) {
-  const { id } = useParams();
+export default function EventDetailsPage({ dbSegment }: { dbSegment?: DbSegment }) {
   const navigate = useNavigate();
-
-  const fallback = dbSegment
-    ? (eventData[dbSegment.id] || Object.values(eventData).find((x: any) => x.title.toLowerCase() === dbSegment.name.toLowerCase()) || eventData['1'])
-    : null;
 
   const event = dbSegment
     ? {
         id: dbSegment.id,
         title: dbSegment.name,
-        tagline: fallback.tagline,
-        category: fallback.category,
-        image: dbSegment.imageUrl || fallback.image,
-        schedule: fallback.schedule,
-        location: fallback.location,
-        deadline: fallback.deadline,
+        tagline: dbSegment.description,
+        category: dbSegment.category || 'General',
+        image: dbSegment.imageUrl || '/globe.svg',
+        schedule: dbSegment.scheduleText || 'TBA',
+        location: dbSegment.location || 'TBA',
+        deadline: dbSegment.deadline || 'TBA',
         prizePool: {
-          champion: dbSegment.prizePool || fallback.prizePool.champion,
-          runnerUp: fallback.prizePool.runnerUp,
+          champion: dbSegment.prizePool || 'Not Specified',
+          runnerUp: 'TBA',
         },
-        teamSize: fallback.teamSize,
-        fee: fallback.fee,
+        teamSize: dbSegment.teamSize || 'TBA',
+        fee: dbSegment.fee || 'TBA',
         description: dbSegment.description,
-        highlights: fallback.highlights,
+        highlights: dbSegment.highlights?.length ? dbSegment.highlights : [dbSegment.rules || 'No rules specified'],
+        ruleBookUrl: dbSegment.ruleBookUrl,
       }
-    : eventData[id || '1'];
+    : null;
 
   if (!event) {
     return (
@@ -308,19 +321,23 @@ export default function EventDetailsPage({ dbSegment }: { dbSegment?: any }) {
               <Zap className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </span>
           </Link>
-          <button
-            className="flex-1 sm:flex-none px-8 py-4 rounded-xl font-semibold backdrop-blur-md transition-all duration-300 hover:scale-105 group"
+          <a
+            href={event.ruleBookUrl || undefined}
+            aria-disabled={!event.ruleBookUrl}
+            className="flex-1 sm:flex-none px-8 py-4 rounded-xl font-semibold backdrop-blur-md transition-all duration-300 hover:scale-105 group text-center"
             style={{
               background: 'rgba(255,255,255,0.05)',
               border: '1px solid rgba(163,177,138,0.25)',
               color: '#a3b18a',
+              pointerEvents: event.ruleBookUrl ? 'auto' : 'none',
+              opacity: event.ruleBookUrl ? 1 : 0.65,
             }}
           >
             <span className="inline-flex items-center gap-2">
               <FileText className="w-4 h-4 group-hover:rotate-12 transition-transform" />
               Download Rule Book
             </span>
-          </button>
+          </a>
         </motion.div>
 
         {/* Description Section */}

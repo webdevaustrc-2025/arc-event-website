@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Bot, CheckCircle2, Star, Award, Bell, Trophy, Calendar, MapPin, ChevronRight, Loader2 } from 'lucide-react';
+import { Bot, CheckCircle2, Star, Award, Bell, Trophy, Calendar, ChevronRight, Loader2, QrCode, Users } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { EventCard } from '@/components/dashboard/EventCard';
@@ -35,6 +35,12 @@ export default function DashboardPage() {
       location: string;
       status: 'upcoming' | 'ongoing' | 'completed';
       image: string;
+      segmentId?: number | null;
+      registrationCode?: string;
+      registrationDate?: string;
+      teamName?: string;
+      registrationStatus?: string;
+      paymentStatus?: string;
     }>;
     announcements: Array<{
       id: number;
@@ -46,6 +52,7 @@ export default function DashboardPage() {
       createdAt: string;
     }>;
   } | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     async function fetchSummary() {
@@ -54,9 +61,13 @@ export default function DashboardPage() {
         if (res.ok) {
           const summaryData = await res.json();
           setData(summaryData);
+        } else {
+          const errorData = await res.json().catch(() => ({}));
+          setError(errorData.message || 'Failed to load dashboard.');
         }
       } catch (err) {
         console.error('Error fetching dashboard summary:', err);
+        setError('Network error while loading dashboard.');
       } finally {
         setLoading(false);
       }
@@ -75,6 +86,8 @@ export default function DashboardPage() {
     Bell,
     Trophy,
     Calendar,
+    QrCode,
+    Users,
   };
 
   const announcementsFromDb = data?.announcements || [];
@@ -120,6 +133,16 @@ export default function DashboardPage() {
   const enrolledEvents = data?.events || [];
   // Upcoming events are those that are not completed (upcoming/ongoing)
   const upcomingEvents = enrolledEvents.filter(e => e.status !== 'completed').slice(0, 2);
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 gap-4 text-center">
+        <Bell className="w-12 h-12 text-red-400" />
+        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-[#1a1a14]'}`}>Unable to Load Dashboard</h1>
+        <p className="text-red-300 text-sm">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div>

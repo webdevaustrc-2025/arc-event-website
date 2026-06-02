@@ -15,8 +15,13 @@ export default function QRPassPage() {
     id: number;
     title: string;
     qrToken: string;
+    registrationCode?: string;
+    registrationDate?: string;
+    teamName?: string;
+    registrationStatus?: string;
   }>>([]);
   const [userName, setUserName] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     async function fetchQRData() {
@@ -29,14 +34,22 @@ export default function QRPassPage() {
             id: e.id,
             title: e.title,
             qrToken: e.qrToken,
+            registrationCode: e.registrationCode,
+            registrationDate: e.registrationDate,
+            teamName: e.teamName,
+            registrationStatus: e.registrationStatus,
           }));
           setEvents(enrolled);
           if (enrolled.length > 0) {
             setSelectedEventId(enrolled[0].id);
           }
+        } else {
+          const data = await res.json().catch(() => ({}));
+          setError(data.message || 'Failed to load QR passes.');
         }
       } catch (err) {
         console.error('Error fetching QR data:', err);
+        setError('Network error while loading QR passes.');
       } finally {
         setLoading(false);
       }
@@ -70,7 +83,19 @@ export default function QRPassPage() {
         </p>
       </div>
 
-      {events.length > 0 && currentEvent ? (
+      {error ? (
+        <div
+          className="p-8 rounded-2xl text-center backdrop-blur-md"
+          style={{
+            background: isDark ? 'rgba(220,38,38,0.08)' : 'rgba(220,38,38,0.06)',
+            border: '1px solid rgba(220,38,38,0.25)',
+          }}
+        >
+          <QrCode className="w-12 h-12 mx-auto mb-3 text-red-400" />
+          <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-[#1a1a14]'}`}>Unable to Load QR Passes</h3>
+          <p className="text-sm text-red-300">{error}</p>
+        </div>
+      ) : events.length > 0 && currentEvent ? (
         <>
           {/* Event Selector */}
           <div className="mb-8">
@@ -111,6 +136,10 @@ export default function QRPassPage() {
               eventName={currentEvent.title}
               userName={userName}
               uniqueId={currentEvent.qrToken}
+              registrationCode={currentEvent.registrationCode}
+              registrationDate={currentEvent.registrationDate}
+              teamName={currentEvent.teamName}
+              registrationStatus={currentEvent.registrationStatus}
             />
           </motion.div>
         </>

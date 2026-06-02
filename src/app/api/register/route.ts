@@ -3,15 +3,24 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
 
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     const body = await request.json();
-    const { teamName, institution, teamLeader, email, phone, members, segment } = body;
+    const { teamName, institution, teamLeader, email, phone, members, segment, password } = body;
 
     if (!teamName || !institution || !teamLeader || !email || !phone || !segment) {
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
+    }
+
+    if (!password) {
+      return NextResponse.json({ message: "Password is required" }, { status: 400 });
+    }
+
+    if (password.length < 8) {
+      return NextResponse.json({ message: "Password must be at least 8 characters" }, { status: 400 });
     }
 
     // 1. Resolve user ID
@@ -19,6 +28,31 @@ export async function POST(request: Request) {
 
     if (session?.user?.id) {
       userId = parseInt(session.user.id);
+      if (isNaN(userId)) {
+        return NextResponse.json({ message: "Invalid user ID" }, { status: 400 });
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, passwordHash: true },
+      });
+
+      if (!user) {
+        return NextResponse.json({ message: "User not found" }, { status: 404 });
+      }
+
+      if (user.passwordHash) {
+        const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+        if (!passwordMatch) {
+          return NextResponse.json({ message: "Invalid password" }, { status: 400 });
+        }
+      } else {
+        const hashedPassword = await bcrypt.hash(password, 12);
+        await prisma.user.update({
+          where: { id: userId },
+          data: { passwordHash: hashedPassword },
+        });
+      }
     } else {
       // Find or create user by email
       let user = await prisma.user.findUnique({
@@ -26,6 +60,7 @@ export async function POST(request: Request) {
       });
 
       if (!user) {
+        const hashedPassword = await bcrypt.hash(password, 12);
         user = await prisma.user.create({
           data: {
             email,
@@ -33,10 +68,23 @@ export async function POST(request: Request) {
             role: "user",
             university: institution,
             phone: phone,
+            passwordHash: hashedPassword,
             avatarUrl:
               "https://res.cloudinary.com/dxyhzgrul/image/upload/v1780398181/silver-membership-icon-default-avatar-profile-icon-membership-icon-social-media-user-image-vector-illustration_561158-4215_bdeofc.jpg",
           } as any,
         });
+      } else if (!user.passwordHash) {
+        // Existing user without a password: set one now.
+        const hashedPassword = await bcrypt.hash(password, 12);
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { passwordHash: hashedPassword },
+        });
+      } else {
+        const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+        if (!passwordMatch) {
+          return NextResponse.json({ message: "Invalid email or password" }, { status: 400 });
+        }
       }
       userId = user.id;
     }

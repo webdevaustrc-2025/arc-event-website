@@ -12,6 +12,7 @@ cloudinary.config({
 
 const DEFAULT_AVATAR =
   "https://res.cloudinary.com/dxyhzgrul/image/upload/v1780398181/silver-membership-icon-default-avatar-profile-icon-membership-icon-social-media-user-image-vector-illustration_561158-4215_bdeofc.jpg";
+const AVATAR_UPLOAD_PRESET = process.env.CLOUDINARY_AVATAR_UPLOAD_PRESET || "profile_arcevent";
 
 export async function POST(request: Request) {
   try {
@@ -47,15 +48,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "File too large. Maximum size is 5MB." }, { status: 400 });
     }
 
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      return NextResponse.json({ message: "Cloudinary is not configured correctly." }, { status: 500 });
+    }
+
     // Convert file to base64 for Cloudinary upload
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
 
-    // Upload to Cloudinary
+    // Upload to Cloudinary using the configured avatar upload preset.
     const uploadResult = await cloudinary.uploader.upload(base64, {
-      folder: "profile_arcevent",
-      upload_preset: "profile_arcevent",
+      upload_preset: AVATAR_UPLOAD_PRESET,
       resource_type: "image",
       transformation: [{ width: 400, height: 400, crop: "fill", gravity: "face" }],
     });
@@ -69,9 +73,12 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, avatarUrl });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Avatar upload error:", error);
-    return NextResponse.json({ message: "Upload failed. Please try again." }, { status: 500 });
+    return NextResponse.json(
+      { message: error?.message || "Upload failed. Please try again." },
+      { status: 500 }
+    );
   }
 }
 
