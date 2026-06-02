@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { useTheme } from 'next-themes';
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
 import { Calendar, Clock, MapPin, Edit2, Trash2, Plus, GripVertical, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -21,7 +21,7 @@ interface SegmentItem {
 }
 
 export default function AdminSchedulePage() {
-  const { theme } = useTheme();
+  const { isDark } = useResolvedTheme();
   const [events, setEvents] = useState<ScheduleItem[]>([]);
   const [segments, setSegments] = useState<SegmentItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,8 +37,6 @@ export default function AdminSchedulePage() {
     segmentId: null as number | null,
     displayOrder: 0,
   });
-
-  const isDark = theme === 'dark';
   const cardBg = isDark ? 'bg-[#111116] border-white/[0.07]' : 'bg-white border-black/[0.08]';
   const eventBg = isDark ? 'bg-[#18181f] border-white/[0.07] hover:bg-[#111116]' : 'bg-[#F0EDE6] border-black/[0.06] hover:bg-white hover:shadow-[0_2px_12px_rgba(0,0,0,0.12)]';
   const textColor = isDark ? 'text-[#F5F5F0]' : 'text-[#1a1a14]';

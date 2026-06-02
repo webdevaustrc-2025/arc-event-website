@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import { useTheme } from 'next-themes';
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
 import { Plus, Edit2, Trash2, Users, Trophy, Clock } from 'lucide-react';
 
 const segmentsData = [
@@ -12,9 +12,7 @@ const segmentsData = [
 ];
 
 export default function AdminSegmentsPage() {
-  const { theme } = useTheme();
-
-  const isDark = theme === 'dark';
+  const { isDark } = useResolvedTheme();
   const cardBg = isDark ? 'bg-[#111116] border-white/[0.07] hover:bg-[#111116]' : 'bg-white border-black/[0.08] hover:shadow-[0_2px_12px_rgba(0,0,0,0.12)]';
   const textColor = isDark ? 'text-[#F5F5F0]' : 'text-[#1a1a14]';
   const mutedText = isDark ? 'text-[#9A9A8E]' : 'text-[#4a4a40]';

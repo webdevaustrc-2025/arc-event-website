@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import { useTheme } from 'next-themes';
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
 import { Users, TrendingUp, CheckCircle, AlertCircle, Clock, Calendar as CalendarIcon } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -15,9 +15,8 @@ const data = [
 ];
 
 export default function AdminDashboardPage() {
-  const { theme } = useTheme();
+  const { isDark, mounted } = useResolvedTheme();
 
-  const isDark = theme === 'dark';
   const cardBg = isDark ? 'bg-[#111116] border-white/[0.07]' : 'bg-white border-black/[0.08]';
   const textColor = isDark ? 'text-[#F5F5F0]' : 'text-[#1a1a14]';
   const mutedText = isDark ? 'text-[#9A9A8E]' : 'text-[#4a4a40]';
@@ -67,31 +66,35 @@ export default function AdminDashboardPage() {
             <p className={`${mutedText} text-sm`}>New user signups over the past 7 days</p>
           </div>
           <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                <CartesianGrid key="grid" strokeDasharray="3 3" stroke={isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"} vertical={false} />
-                <XAxis key="xaxis" dataKey="name" stroke={isDark ? "#888" : "#666"} tick={{fill: isDark ? "#888" : "#666"}} tickLine={false} axisLine={false} />
-                <YAxis key="yaxis" stroke={isDark ? "#888" : "#666"} tick={{fill: isDark ? "#888" : "#666"}} tickLine={false} axisLine={false} />
-                <Tooltip
-                  key="tooltip"
-                  contentStyle={{
-                    backgroundColor: isDark ? '#0A0A0F' : '#fff',
-                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-                    borderRadius: '8px',
-                    color: isDark ? '#fff' : '#000'
-                  }}
-                />
-                <Line
-                  key="registrations-line"
-                  type="monotone"
-                  dataKey="registrations"
-                  stroke={isDark ? "#588157" : "#3a5a40"}
-                  strokeWidth={3}
-                  dot={{ r: 4, fill: isDark ? "#0A0A0F" : "#fff", strokeWidth: 2 }}
-                  activeDot={{ r: 6, fill: isDark ? "#588157" : "#3a5a40" }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            {mounted ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                  <CartesianGrid key="grid" strokeDasharray="3 3" stroke={isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"} vertical={false} />
+                  <XAxis key="xaxis" dataKey="name" stroke={isDark ? "#888" : "#666"} tick={{fill: isDark ? "#888" : "#666"}} tickLine={false} axisLine={false} />
+                  <YAxis key="yaxis" stroke={isDark ? "#888" : "#666"} tick={{fill: isDark ? "#888" : "#666"}} tickLine={false} axisLine={false} />
+                  <Tooltip
+                    key="tooltip"
+                    contentStyle={{
+                      backgroundColor: isDark ? '#0A0A0F' : '#fff',
+                      border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                      borderRadius: '8px',
+                      color: isDark ? '#fff' : '#000'
+                    }}
+                  />
+                  <Line
+                    key="registrations-line"
+                    type="monotone"
+                    dataKey="registrations"
+                    stroke={isDark ? "#588157" : "#3a5a40"}
+                    strokeWidth={3}
+                    dot={{ r: 4, fill: isDark ? "#0A0A0F" : "#fff", strokeWidth: 2 }}
+                    activeDot={{ r: 6, fill: isDark ? "#588157" : "#3a5a40" }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="w-full h-full animate-pulse bg-gray-200 dark:bg-gray-800 rounded-lg" />
+            )}
           </div>
         </div>
 
