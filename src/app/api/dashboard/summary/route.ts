@@ -26,6 +26,9 @@ export async function GET() {
         department: true,
         studentId: true,
         avatarUrl: true,
+        role: true,
+        createdAt: true,
+        passwordHash: true,
       } as any,
     })) as any;
 
@@ -69,6 +72,12 @@ export async function GET() {
     });
     const bestRank = bestRankRecord ? `#${bestRankRecord.rank}` : "N/A";
 
+    const formatDate = (date: Date) =>
+      date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+
+    const latestRegistration = registrations[0];
+    const registrationId = latestRegistration ? `ARC-REG-${latestRegistration.id.toString().padStart(5, "0")}` : null;
+
     // Format events for UI (matching EventCard props)
     const events = registrations.map((reg) => {
       const schedule = reg.segment?.schedule?.[0];
@@ -81,7 +90,7 @@ export async function GET() {
         const start = new Date(schedule.startTime);
         const end = new Date(schedule.endTime);
         
-        eventDate = start.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+        eventDate = formatDate(start);
         eventTime = `${start.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} - ${end.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}`;
         eventLocation = schedule.venue;
       }
@@ -102,7 +111,11 @@ export async function GET() {
       }
 
       return {
-        id: reg.segment?.id ?? reg.id,
+        id: reg.id,
+        registrationId: reg.id,
+        registrationCode: `ARC-REG-${reg.id.toString().padStart(5, "0")}`,
+        registrationDate: formatDate(reg.createdAt),
+        segmentId: reg.segment?.id ?? null,
         title: reg.segment?.name ?? "Event",
         date: eventDate,
         time: eventTime,
@@ -122,8 +135,15 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
+    const { passwordHash, createdAt, ...safeUser } = user;
+
     return NextResponse.json({
-      user,
+      user: {
+        ...safeUser,
+        hasPassword: Boolean(passwordHash),
+        registrationId,
+        accountCreatedAt: formatDate(createdAt),
+      },
       stats: {
         enrolledCount,
         completedCount,

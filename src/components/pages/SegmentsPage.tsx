@@ -4,53 +4,65 @@ import { motion } from 'motion/react';
 import { Bot, Crosshair, Map, Zap, Cpu, ShieldAlert, Car, MonitorSmartphone, Target, Swords, Ghost, Radar, Calendar, MapPin, Clock } from 'lucide-react';
 import { Link } from '@/lib/router-compat';
 
-const allSegments = [
-  { id: 1, title: 'Robo Soccer', desc: 'Build and program autonomous or manual robots to compete in a high-stakes soccer tournament on a custom arena.', type: 'Team', difficulty: 'Hard', icon: <Bot className="w-8 h-8" />, size: 'large', team: 'Max 4', fee: '৳500', prize: '৳20,000', filter: 'Manual', schedule: 'Day 1 • 10:00 AM', location: 'Arena A', deadline: 'May 15, 2026', image: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800&q=80' },
-  { id: 2, title: 'Line Follower', desc: 'Optimize your algorithms for the fastest time across complex track layouts with sharp turns and intersections.', type: 'Team', difficulty: 'Medium', icon: <Map className="w-8 h-8" />, size: 'small', team: 'Max 3', fee: '৳400', prize: '৳15,000', filter: 'Autonomous', schedule: 'Day 1 • 2:00 PM', location: 'Track B', deadline: 'May 12, 2026', image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80' },
-  { id: 3, title: 'Drone Race', desc: 'Navigate aerial obstacles in a high-speed FPV drone racing championship.', type: 'Solo', difficulty: 'Extreme', icon: <Crosshair className="w-8 h-8" />, size: 'small', team: 'Max 1', fee: '৳1000', prize: '৳50,000', filter: 'Manual', schedule: 'Day 2 • 11:00 AM', location: 'Sky Zone', deadline: 'May 10, 2026', image: 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=800&q=80' },
-  { id: 4, title: 'Sumo Bot', desc: 'Push the opponent out of the ring. Pure torque and grip.', type: 'Team', difficulty: 'Hard', icon: <Zap className="w-8 h-8" />, size: 'small', team: 'Max 4', fee: '৳600', prize: '৳25,000', filter: 'Autonomous', schedule: 'Day 1 • 4:00 PM', location: 'Ring C', deadline: 'May 14, 2026', image: 'https://images.unsplash.com/photo-1535378917042-10a22c95931a?w=800&q=80' },
-  { id: 5, title: 'Maze Solver', desc: 'Autonomous micro-mouse navigating unknown labyrinths.', type: 'Solo', difficulty: 'Hard', icon: <Cpu className="w-8 h-8" />, size: 'small', team: 'Max 2', fee: '৳300', prize: '৳10,000', filter: 'Autonomous', schedule: 'Day 2 • 9:00 AM', location: 'Lab D', deadline: 'May 16, 2026', image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80' },
-  { id: 6, title: 'Combat Robotics', desc: 'Heavyweight destructive robots battle in an enclosed bulletproof arena. Only one survives.', type: 'Team', difficulty: 'Extreme', icon: <ShieldAlert className="w-8 h-8" />, size: 'large', team: 'Max 5', fee: '৳1500', prize: '৳100,000', filter: 'Manual', schedule: 'Day 2 • 5:00 PM', location: 'Battle Arena', deadline: 'May 8, 2026', image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=80' },
-  { id: 7, title: 'RC Car Racing', desc: 'Off-road RC racing on dirt tracks. High speed maneuvering required.', type: 'Team', difficulty: 'Medium', icon: <Car className="w-8 h-8" />, size: 'small', team: 'Max 3', fee: '৳400', prize: '৳15,000', filter: 'Manual', schedule: 'Day 1 • 1:00 PM', location: 'Outdoor Track', deadline: 'May 13, 2026', image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80' },
-  { id: 8, title: 'App Dev Sprint', desc: '24-hour hackathon to build a robotic control app interface.', type: 'Team', difficulty: 'Medium', icon: <MonitorSmartphone className="w-8 h-8" />, size: 'small', team: 'Max 4', fee: '৳300', prize: '৳15,000', filter: 'Autonomous', schedule: 'Day 1 • 6:00 PM', location: 'Tech Hub', deadline: 'May 11, 2026', image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80' },
-  { id: 9, title: 'Object Sorting', desc: 'AI-powered robot arms sorting color-coded blocks on a conveyor.', type: 'Solo', difficulty: 'Hard', icon: <Target className="w-8 h-8" />, size: 'small', team: 'Max 2', fee: '৳400', prize: '৳12,000', filter: 'Autonomous', schedule: 'Day 2 • 3:00 PM', location: 'Lab E', deadline: 'May 15, 2026', image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80' },
-  { id: 10, title: 'Gladiator Bot', desc: 'Melee weapons only. Bipedal robots fighting for supremacy.', type: 'Team', difficulty: 'Hard', icon: <Swords className="w-8 h-8" />, size: 'small', team: 'Max 4', fee: '৳600', prize: '৳25,000', filter: 'Manual', schedule: 'Day 2 • 1:00 PM', location: 'Arena B', deadline: 'May 12, 2026', image: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=800&q=80' },
-  { id: 11, title: 'Stealth Navigator', desc: 'Evade laser sensors in a dark room using infrared and lidar.', type: 'Solo', difficulty: 'Hard', icon: <Ghost className="w-8 h-8" />, size: 'small', team: 'Max 1', fee: '৳300', prize: '৳10,000', filter: 'Autonomous', schedule: 'Day 1 • 8:00 PM', location: 'Dark Chamber', deadline: 'May 14, 2026', image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80' },
-  { id: 12, title: 'Search & Rescue', desc: 'Navigate a simulated disaster zone to find heat signatures.', type: 'Team', difficulty: 'Medium', icon: <Radar className="w-8 h-8" />, size: 'small', team: 'Max 4', fee: '৳500', prize: '৳20,000', filter: 'Autonomous', schedule: 'Day 2 • 12:00 PM', location: 'Zone F', deadline: 'May 13, 2026', image: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&q=80' }
+interface DbSegment {
+  id: number;
+  name: string;
+  description: string;
+  prizePool?: string | null;
+  category?: string | null;
+  type?: string | null;
+  difficulty?: string | null;
+  teamSize?: string | null;
+  fee?: string | null;
+  deadline?: string | null;
+  location?: string | null;
+  scheduleText?: string | null;
+  imageUrl?: string | null;
+}
+
+const icons = [
+  <Bot key="bot" className="w-8 h-8" />,
+  <Map key="map" className="w-8 h-8" />,
+  <Crosshair key="crosshair" className="w-8 h-8" />,
+  <Zap key="zap" className="w-8 h-8" />,
+  <Cpu key="cpu" className="w-8 h-8" />,
+  <ShieldAlert key="shield-alert" className="w-8 h-8" />,
+  <Car key="car" className="w-8 h-8" />,
+  <MonitorSmartphone key="monitor-smartphone" className="w-8 h-8" />,
+  <Target key="target" className="w-8 h-8" />,
+  <Swords key="swords" className="w-8 h-8" />,
+  <Ghost key="ghost" className="w-8 h-8" />,
+  <Radar key="radar" className="w-8 h-8" />,
 ];
 
 const filters = ['All', 'Solo', 'Team', 'Autonomous', 'Manual'];
 
-export default function SegmentsPage({ dbSegments }: { dbSegments?: any[] }) {
+export default function SegmentsPage({ dbSegments }: { dbSegments?: DbSegment[] }) {
   const [activeFilter, setActiveFilter] = useState('All');
 
-  const segments = dbSegments && dbSegments.length > 0
-    ? dbSegments.map(s => {
-        const fallback = allSegments.find(x => x.title.toLowerCase() === s.name.toLowerCase() || x.id === s.id) || allSegments[0];
-        return {
-          id: s.id,
-          title: s.name,
-          desc: s.description,
-          type: fallback.type,
-          difficulty: fallback.difficulty,
-          icon: fallback.icon,
-          size: fallback.size,
-          team: fallback.team,
-          fee: fallback.fee,
-          prize: s.prizePool || fallback.prize,
-          filter: fallback.filter,
-          schedule: fallback.schedule,
-          location: fallback.location,
-          deadline: fallback.deadline,
-          image: s.imageUrl || fallback.image,
-        };
-      })
-    : allSegments;
+  const segments = (dbSegments || []).map((s, index) => ({
+    id: s.id,
+    title: s.name,
+    desc: s.description,
+    type: s.type || 'Team',
+    difficulty: s.difficulty || 'Medium',
+    icon: icons[index % icons.length],
+    team: s.teamSize || 'TBA',
+    fee: s.fee || 'TBA',
+    prize: s.prizePool || 'Not Specified',
+    filter: s.category || 'General',
+    schedule: s.scheduleText || 'TBA',
+    location: s.location || 'TBA',
+    deadline: s.deadline || 'TBA',
+    image: s.imageUrl || '/globe.svg',
+  }));
 
   const filteredSegments = segments.filter(s => {
     if (activeFilter === 'All') return true;
     if (activeFilter === 'Solo' || activeFilter === 'Team') return s.type === activeFilter;
-    if (activeFilter === 'Autonomous' || activeFilter === 'Manual') return s.filter === activeFilter;
+    if (activeFilter === 'Autonomous' || activeFilter === 'Manual') {
+      return String(s.filter).toLowerCase().includes(activeFilter.toLowerCase());
+    }
     return true;
   });
 

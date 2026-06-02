@@ -4,118 +4,55 @@ import { motion } from 'motion/react';
 import { Trophy, Target, Zap, Cpu, Code, Grid, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from '@/lib/router-compat';
 
-const segments = [
-  {
-    id: 1,
-    code: 'RO-01',
-    name: 'Robo Olympiad',
-    subtitle: 'Project Showcase & Innovation Display',
-    desc: 'Present your most innovative robotics project to industry experts and compete for top honors.',
-    icon: <Trophy className="w-16 h-16" />,
-    teamSize: '2-4 members',
-    entryFee: '$50',
-    prize: '$5,000',
-    rules: [
-      'Original design required with documentation',
-      'Live demonstration mandatory',
-      'Q&A session with judges',
-      'Must include working prototype'
-    ]
-  },
-  {
-    id: 2,
-    code: 'SB-02',
-    name: 'Soccer Bot',
-    subtitle: 'Strategic Gameplay & Autonomous Control',
-    desc: 'Design autonomous robots that compete in fast-paced soccer matches using advanced AI.',
-    icon: <Target className="w-16 h-16" />,
-    teamSize: '3-5 members',
-    entryFee: '$60',
-    prize: '$7,500',
-    rules: [
-      'Fully autonomous operation required',
-      'Maximum bot dimensions: 20cm x 20cm',
-      'Standard arena size: 4m x 6m',
-      'Round-robin tournament format'
-    ]
-  },
-  {
-    id: 3,
-    code: 'LF-03',
-    name: 'Line Following Robot',
-    subtitle: 'Speed, Precision & Algorithm Mastery',
-    desc: 'Navigate complex track patterns at maximum speed with flawless precision.',
-    icon: <Zap className="w-16 h-16" />,
-    teamSize: '1-3 members',
-    entryFee: '$40',
-    prize: '$3,000',
-    rules: [
-      'Time-based scoring system',
-      'Multiple track difficulty levels',
-      'Sensor limitations apply',
-      'Best of 3 runs counted'
-    ]
-  },
-  {
-    id: 4,
-    code: 'CW-04',
-    name: 'Circuit Wizard',
-    subtitle: 'Electronics Design & Problem Solving',
-    desc: 'Solve real-world circuit challenges and demonstrate advanced electronics expertise.',
-    icon: <Cpu className="w-16 h-16" />,
-    teamSize: '1-2 members',
-    entryFee: '$35',
-    prize: '$2,500',
-    rules: [
-      'Timed problem-solving rounds',
-      'PCB design submission required',
-      'Component efficiency scoring',
-      'Live troubleshooting challenge'
-    ]
-  },
-  {
-    id: 5,
-    code: 'RH-05',
-    name: 'Robo Hackathon',
-    subtitle: 'Code, Build & Deploy in 24hrs',
-    desc: 'Intense 24-hour challenge to design, build, and present a complete robotic solution.',
-    icon: <Code className="w-16 h-16" />,
-    teamSize: '2-4 members',
-    entryFee: '$70',
-    prize: '$10,000',
-    rules: [
-      '24-hour continuous development',
-      'Mentorship sessions available',
-      'Final pitch to judging panel',
-      'Open-source submission preferred'
-    ]
-  },
-  {
-    id: 6,
-    code: 'CD-06',
-    name: 'Cadyssey',
-    subtitle: 'Robotics Engineering & Design',
-    desc: 'Showcase exceptional CAD modeling skills and mechanical engineering prowess.',
-    icon: <Grid className="w-16 h-16" />,
-    teamSize: '1-3 members',
-    entryFee: '$45',
-    prize: '$4,000',
-    rules: [
-      'Detailed 3D models required',
-      'Assembly simulation mandatory',
-      'Bill of materials included',
-      'Design optimization challenge'
-    ]
-  }
-];
+interface SegmentData {
+  id: number;
+  name: string;
+  description: string;
+  rules: string;
+  prizePool: string;
+  status: string;
+  imageUrl?: string;
+}
+
+const ICONS: { [key: number]: React.ReactNode } = {
+  1: <Trophy className="w-16 h-16" />,
+  2: <Target className="w-16 h-16" />,
+  3: <Zap className="w-16 h-16" />,
+  4: <Cpu className="w-16 h-16" />,
+  5: <Code className="w-16 h-16" />,
+  6: <Grid className="w-16 h-16" />,
+};
 
 export const Segments = () => {
+  const [segments, setSegments] = useState<SegmentData[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flippedIndex, setFlippedIndex] = useState<number | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1200
   );
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Fetch segments from API
+  useEffect(() => {
+    if (mounted) {
+      fetchSegments();
+    }
+  }, [mounted]);
+
+  const fetchSegments = async () => {
+    try {
+      const response = await fetch('/api/segments');
+      const data = await response.json();
+      setSegments(data);
+    } catch (error) {
+      console.error('Failed to fetch segments:', error);
+    }
+  };
 
   useEffect(() => {
     const onResize = () => setWindowWidth(window.innerWidth);
@@ -124,14 +61,14 @@ export const Segments = () => {
   }, []);
 
   useEffect(() => {
-    if (!isPaused) {
+    if (!isPaused && segments.length > 0) {
       const interval = setInterval(() => {
         setCurrentIndex((prev) => (prev + 1) % segments.length);
         setFlippedIndex(null);
       }, 3000);
       return () => clearInterval(interval);
     }
-  }, [isPaused]);
+  }, [isPaused, segments.length]);
 
   const isMobile = windowWidth < 768;
   const isTablet = windowWidth >= 768 && windowWidth < 1200;
@@ -471,12 +408,12 @@ export const Segments = () => {
                         border: '1px solid rgba(88,160,88,0.12)',
                       }}
                     >
-                      {segment.icon}
+                      {ICONS[segment.id % 6] || ICONS[1]}
                     </div>
 
                     {/* Code Name */}
                     <div className="text-center mb-3">
-                      <span className="text-xs text-[#4a6a4a] font-mono tracking-wider">{segment.code}</span>
+                      <span className="text-xs text-[#4a6a4a] font-mono tracking-wider">SEG-{String(segment.id).padStart(2, '0')}</span>
                     </div>
 
                     {/* Click to Flip */}
@@ -502,7 +439,7 @@ export const Segments = () => {
                       >
                         {segment.name}
                       </h3>
-                      <p className="text-sm text-[#5a7a5a]">{segment.subtitle}</p>
+                      <p className="text-sm text-[#5a7a5a]">{segment.description.substring(0, 50)}...</p>
                     </div>
                   </motion.div>
 
@@ -542,31 +479,25 @@ export const Segments = () => {
 
                     <div className="space-y-3 mb-6">
                       <div className="flex justify-between text-sm">
-                        <span className="text-[#5a7a5a]">Team Size:</span>
-                        <span className="text-[#c8ddb0] font-medium">{segment.teamSize}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-[#5a7a5a]">Entry Fee:</span>
-                        <span className="text-[#c8ddb0] font-medium">{segment.entryFee}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
                         <span className="text-[#5a7a5a]">Prize Pool:</span>
-                        <span className="text-[#a3b18a] font-bold">{segment.prize}</span>
+                        <span className="text-[#a3b18a] font-bold">{segment.prizePool}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-[#5a7a5a]">Status:</span>
+                        <span className="text-[#c8ddb0] font-medium capitalize">{segment.status}</span>
                       </div>
                     </div>
 
                     <div className="h-px mb-4" style={{ background: 'rgba(88,160,88,0.15)' }} />
 
                     <div className="mb-6">
-                      <p className="text-xs text-[#4a6a4a] uppercase tracking-wider mb-3">Key Rules:</p>
-                      <ul className="space-y-2">
-                        {segment.rules.map((rule, i) => (
-                          <li key={i} className="text-xs text-[#6a8a6a] flex items-start gap-2">
-                            <span className="text-[#6aaf6a] mt-0.5">•</span>
-                            <span>{rule}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      <p className="text-xs text-[#4a6a4a] uppercase tracking-wider mb-3">Description:</p>
+                      <p className="text-xs text-[#6a8a6a] leading-relaxed">{segment.description}</p>
+                    </div>
+
+                    <div className="mb-4">
+                      <p className="text-xs text-[#4a6a4a] uppercase tracking-wider mb-2">Rules & Requirements:</p>
+                      <p className="text-xs text-[#6a8a6a] leading-relaxed">{segment.rules || 'No rules specified'}</p>
                     </div>
 
                     <div className="space-y-2 mt-auto">
@@ -577,7 +508,7 @@ export const Segments = () => {
                           border: '1px solid rgba(120,180,120,0.25)',
                         }}
                       >
-                        View Full Rules
+                        View Details
                       </button>
                       <button
                         className="w-full py-2 rounded-full text-white text-sm font-semibold transition-all hover:brightness-110"

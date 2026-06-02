@@ -1,26 +1,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-
-// Mock database
-const segments: Record<
-  number,
-  {
-    id: number;
-    title: string;
-    participants: number;
-    prize: string;
-    status: string;
-    duration: string;
-    color: string;
-  }
-> = {
-  1: { id: 1, title: 'Robo Wars', participants: 48, prize: '$5,000', status: 'Active', duration: '3 Hours', color: 'from-orange-500/20 to-red-500/20' },
-  2: { id: 2, title: 'Line Follower', participants: 32, prize: '$2,000', status: 'Active', duration: '2 Hours', color: 'from-blue-500/20 to-cyan-500/20' },
-  3: { id: 3, title: 'Drone Racing', participants: 24, prize: '$3,500', status: 'Upcoming', duration: '4 Hours', color: 'from-purple-500/20 to-pink-500/20' },
-  4: { id: 4, title: 'AI Hackathon', participants: 150, prize: '$10,000', status: 'Registration Open', duration: '24 Hours', color: 'from-[#588157]/20 to-[#a3b18a]/20' },
-  5: { id: 5, title: 'Maze Solver', participants: 20, prize: '$1,500', status: 'Active', duration: '1.5 Hours', color: 'from-amber-500/20 to-yellow-500/20' },
-};
 
 export async function GET(
   request: Request,
@@ -37,7 +18,10 @@ export async function GET(
 
     const { id } = await params;
     const segmentId = parseInt(id);
-    const segment = segments[segmentId];
+
+    const segment = await prisma.segment.findUnique({
+      where: { id: segmentId },
+    });
 
     if (!segment) {
       return NextResponse.json(
@@ -46,10 +30,17 @@ export async function GET(
       );
     }
 
+    // Map database fields to mock fields to support legacy elements that expect 'title' or 'prize'
+    const mappedSegment = {
+      ...segment,
+      title: segment.name,
+      prize: segment.prizePool,
+    };
+
     return NextResponse.json(
       {
         success: true,
-        data: segment,
+        data: mappedSegment,
         message: "Segment fetched successfully",
       },
       { status: 200 }
@@ -82,9 +73,12 @@ export async function PUT(
 
     const { id } = await params;
     const segmentId = parseInt(id);
-    const segment = segments[segmentId];
 
-    if (!segment) {
+    const existing = await prisma.segment.findUnique({
+      where: { id: segmentId },
+    });
+
+    if (!existing) {
       return NextResponse.json(
         { success: false, error: "NOT_FOUND", message: "Segment not found" },
         { status: 404 }
@@ -92,13 +86,57 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const updatedSegment = { ...segment, ...body, id: segmentId };
-    segments[segmentId] = updatedSegment;
+
+    // Map updated fields from body with fallback to legacy keys and existing values
+    const name = body.name || body.title || existing.name;
+    const description = body.description !== undefined ? body.description : existing.description;
+    const rules = body.rules !== undefined ? body.rules : existing.rules;
+    const prizePool = body.prizePool || body.prize || existing.prizePool;
+    const category = body.category !== undefined ? body.category : existing.category;
+    const type = body.type !== undefined ? body.type : existing.type;
+    const difficulty = body.difficulty !== undefined ? body.difficulty : existing.difficulty;
+    const teamSize = body.teamSize !== undefined ? body.teamSize : existing.teamSize;
+    const fee = body.fee !== undefined ? body.fee : existing.fee;
+    const deadline = body.deadline !== undefined ? body.deadline : existing.deadline;
+    const location = body.location !== undefined ? body.location : existing.location;
+    const scheduleText = body.scheduleText !== undefined ? body.scheduleText : existing.scheduleText;
+    const ruleBookUrl = body.ruleBookUrl !== undefined ? body.ruleBookUrl : existing.ruleBookUrl;
+    const highlights = Array.isArray(body.highlights) ? body.highlights : existing.highlights;
+    const status = body.status !== undefined ? body.status : existing.status;
+    const imageUrl = body.imageUrl !== undefined ? body.imageUrl : existing.imageUrl;
+
+    const updated = await prisma.segment.update({
+      where: { id: segmentId },
+      data: {
+        name,
+        description,
+        rules,
+        prizePool,
+        category,
+        type,
+        difficulty,
+        teamSize,
+        fee,
+        deadline,
+        location,
+        scheduleText,
+        ruleBookUrl,
+        highlights,
+        status,
+        imageUrl,
+      },
+    });
+
+    const mappedSegment = {
+      ...updated,
+      title: updated.name,
+      prize: updated.prizePool,
+    };
 
     return NextResponse.json(
       {
         success: true,
-        data: updatedSegment,
+        data: mappedSegment,
         message: "Segment updated successfully",
       },
       { status: 200 }
@@ -131,14 +169,21 @@ export async function DELETE(
 
     const { id } = await params;
     const segmentId = parseInt(id);
-    if (!segments[segmentId]) {
+
+    const existing = await prisma.segment.findUnique({
+      where: { id: segmentId },
+    });
+
+    if (!existing) {
       return NextResponse.json(
         { success: false, error: "NOT_FOUND", message: "Segment not found" },
         { status: 404 }
       );
     }
 
-    delete segments[segmentId];
+    await prisma.segment.delete({
+      where: { id: segmentId },
+    });
 
     return NextResponse.json(
       {

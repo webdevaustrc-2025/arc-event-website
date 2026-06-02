@@ -19,7 +19,14 @@ export default function MyEventsPage() {
     location: string;
     status: 'upcoming' | 'ongoing' | 'completed';
     image: string;
+    segmentId?: number | null;
+    registrationCode?: string;
+    registrationDate?: string;
+    teamName?: string;
+    registrationStatus?: string;
+    paymentStatus?: string;
   }>>([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     async function fetchEvents() {
@@ -28,9 +35,13 @@ export default function MyEventsPage() {
         if (res.ok) {
           const summaryData = await res.json();
           setMyEvents(summaryData.events || []);
+        } else {
+          const errorData = await res.json().catch(() => ({}));
+          setError(errorData.message || 'Failed to load your events.');
         }
       } catch (err) {
         console.error('Error fetching registered events:', err);
+        setError('Network error while loading your events.');
       } finally {
         setLoading(false);
       }
@@ -45,6 +56,16 @@ export default function MyEventsPage() {
       <div className="flex flex-col items-center justify-center py-32 gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-[#588157]" />
         <p className="text-gray-400 text-sm">Loading your events...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`text-center py-20 ${isDark ? 'text-[#9A9A8E]' : 'text-[#8a8a7a]'}`}>
+        <Calendar className="w-16 h-16 mx-auto mb-4 text-red-400" />
+        <h1 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-[#1a1a14]'}`}>Unable to Load Events</h1>
+        <p className="text-sm text-red-300">{error}</p>
       </div>
     );
   }

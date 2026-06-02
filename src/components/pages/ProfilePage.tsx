@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Camera, Mail, Phone, MapPin, Building2, Save, User as UserIcon, Loader2 } from 'lucide-react';
+import { Camera, Mail, Phone, MapPin, Building2, Save, User as UserIcon, Loader2, Lock, Eye, EyeOff, KeyRound } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import AvatarUploadModal from '@/components/ui/AvatarUploadModal';
 
@@ -16,6 +16,13 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [error, setError] = useState('');
+
+  // Change-password state
+  const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [showPw, setShowPw] = useState({ current: false, new: false, confirm: false });
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [pwMsg, setPwMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [profile, setProfile] = useState({
     name: '',
     email: '',
@@ -24,6 +31,10 @@ export default function ProfilePage() {
     department: '',
     studentId: '',
     avatar: DEFAULT_AVATAR,
+    registrationId: '',
+    accountCreatedAt: '',
+    role: 'user',
+    hasPassword: false,
   });
 
   useEffect(() => {
@@ -40,10 +51,18 @@ export default function ProfilePage() {
             department: summaryData.user?.department || '',
             studentId: summaryData.user?.studentId || 'N/A',
             avatar: summaryData.user?.avatarUrl || DEFAULT_AVATAR,
+            registrationId: summaryData.user?.registrationId || 'N/A',
+            accountCreatedAt: summaryData.user?.accountCreatedAt || 'N/A',
+            role: summaryData.user?.role || 'user',
+            hasPassword: Boolean(summaryData.user?.hasPassword),
           });
+        } else {
+          const data = await res.json().catch(() => ({}));
+          setError(data.message || 'Failed to load profile.');
         }
       } catch (err) {
         console.error('Error fetching profile:', err);
+        setError('Network error while loading profile.');
       } finally {
         setLoading(false);
       }
@@ -87,6 +106,37 @@ export default function ProfilePage() {
     setProfile((prev) => ({ ...prev, avatar: newUrl }));
   };
 
+  const handleChangePassword = async () => {
+    setPwMsg(null);
+    if (!pwForm.newPassword || pwForm.newPassword.length < 8) {
+      setPwMsg({ type: 'error', text: 'New password must be at least 8 characters.' });
+      return;
+    }
+    if (pwForm.newPassword !== pwForm.confirmPassword) {
+      setPwMsg({ type: 'error', text: 'Passwords do not match.' });
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      const res = await fetch('/api/dashboard/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pwForm),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPwMsg({ type: 'success', text: 'Password updated successfully!' });
+        setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      } else {
+        setPwMsg({ type: 'error', text: data.message || 'Failed to update password.' });
+      }
+    } catch {
+      setPwMsg({ type: 'error', text: 'Network error. Please try again.' });
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
   const inputClass = (editable: boolean) =>
     `w-full px-4 py-3 rounded-xl transition-all ${
       editable
@@ -103,6 +153,16 @@ export default function ProfilePage() {
       <div className="flex flex-col items-center justify-center py-32 gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-[#588157]" />
         <p className="text-gray-400 text-sm">Loading profile...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 gap-4 text-center">
+        <UserIcon className="w-12 h-12 text-red-400" />
+        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-[#1a1a14]'}`}>Unable to Load Profile</h1>
+        <p className="text-sm text-red-300">{error}</p>
       </div>
     );
   }
@@ -206,7 +266,7 @@ export default function ProfilePage() {
                 {profile.name}
               </h2>
               <p className={`text-lg ${isDark ? 'text-[#9A9A8E]' : 'text-[#8a8a7a]'}`}>
-                {profile.university}
+                {profile.university || 'Institution not added'}
               </p>
               <div className="flex flex-col sm:flex-row items-center md:items-start gap-2 mt-3">
                 <span
@@ -231,6 +291,23 @@ export default function ProfilePage() {
                   Change Photo
                 </button>
               </div>
+            </div>
+
+            {/* Registration ID */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-[#9A9A8E]' : 'text-[#8a8a7a]'}`}>
+                Registration ID
+              </label>
+              <input
+                type="text"
+                value={profile.registrationId || 'N/A'}
+                disabled
+                className={`w-full px-4 py-3 rounded-xl ${
+                  isDark
+                    ? 'bg-white/5 border border-transparent text-[#5A5A52]'
+                    : 'bg-black/3 border border-transparent text-[#8a8a7a]'
+                } outline-none cursor-not-allowed`}
+              />
             </div>
           </div>
         </div>
@@ -358,6 +435,204 @@ export default function ProfilePage() {
               </button>
             </div>
           )}
+        </div>
+      </motion.div>
+
+      {/* Account Information Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.05 }}
+        className="rounded-2xl overflow-hidden backdrop-blur-md mt-6 p-6 sm:p-8"
+        style={{
+          background: isDark
+            ? 'linear-gradient(135deg, rgba(58,90,64,0.06) 0%, rgba(163,177,138,0.03) 100%)'
+            : 'linear-gradient(135deg, rgba(58,90,64,0.04) 0%, rgba(163,177,138,0.02) 100%)',
+          border: `1px solid ${isDark ? 'rgba(163,177,138,0.12)' : 'rgba(58,90,64,0.15)'}`,
+        }}
+      >
+        <h2
+          className={`text-xl font-bold mb-5 ${isDark ? 'text-white' : 'text-[#1a1a14]'}`}
+          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+        >
+          Account Information
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[
+            { label: 'Account Type', value: profile.role === 'admin' ? 'Admin' : 'Participant' },
+            { label: 'Account Created', value: profile.accountCreatedAt || 'N/A' },
+            { label: 'Password', value: profile.hasPassword ? 'Configured' : 'Not configured' },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className={`p-4 rounded-xl ${isDark ? 'bg-white/5' : 'bg-black/5'}`}
+            >
+              <p className={`text-xs uppercase tracking-wider mb-1 ${isDark ? 'text-[#5A5A52]' : 'text-[#8a8a7a]'}`}>
+                {item.label}
+              </p>
+              <p className={`font-semibold ${isDark ? 'text-white' : 'text-[#1a1a14]'}`}>{item.value}</p>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Change Password Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+        className="rounded-2xl overflow-hidden backdrop-blur-md mt-6"
+        style={{
+          background: isDark
+            ? 'linear-gradient(135deg, rgba(58,90,64,0.06) 0%, rgba(163,177,138,0.03) 100%)'
+            : 'linear-gradient(135deg, rgba(58,90,64,0.04) 0%, rgba(163,177,138,0.02) 100%)',
+          border: `1px solid ${isDark ? 'rgba(163,177,138,0.12)' : 'rgba(58,90,64,0.15)'}`,
+        }}
+      >
+        {/* Header */}
+        <div
+          className="flex items-center gap-3 p-6 border-b"
+          style={{ borderColor: isDark ? 'rgba(163,177,138,0.1)' : 'rgba(58,90,64,0.1)' }}
+        >
+          <div
+            className="w-10 h-10 flex items-center justify-center rounded-xl"
+            style={{ background: isDark ? 'rgba(88,129,87,0.15)' : 'rgba(88,129,87,0.1)' }}
+          >
+            <KeyRound className="w-5 h-5" style={{ color: '#588157' }} />
+          </div>
+          <div>
+            <h2
+              className={`text-xl font-bold ${isDark ? 'text-white' : 'text-[#1a1a14]'}`}
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            >
+              Change Password
+            </h2>
+            <p className={`text-sm ${isDark ? 'text-[#9A9A8E]' : 'text-[#8a8a7a]'}`}>
+              Update your account password
+            </p>
+          </div>
+        </div>
+
+        <div className="p-6 sm:p-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Current Password */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-[#9A9A8E]' : 'text-[#8a8a7a]'}`}>
+                <Lock className="w-4 h-4 inline mr-2" />
+                Current Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPw.current ? 'text' : 'password'}
+                  value={pwForm.currentPassword}
+                  onChange={(e) => setPwForm({ ...pwForm, currentPassword: e.target.value })}
+                  placeholder="Your current password"
+                  className={`w-full px-4 py-3 pr-10 rounded-xl transition-all outline-none ${
+                    isDark
+                      ? 'bg-white/10 border border-[#588157]/30 text-white placeholder:text-[#5A5A52] focus:border-[#588157]'
+                      : 'bg-black/5 border border-[#588157]/25 text-[#1a1a14] placeholder:text-[#9a9a8a] focus:border-[#588157]'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw((p) => ({ ...p, current: !p.current }))}
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  style={{ color: isDark ? '#5A5A52' : '#9a9a8a' }}
+                >
+                  {showPw.current ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* New Password */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-[#9A9A8E]' : 'text-[#8a8a7a]'}`}>
+                <Lock className="w-4 h-4 inline mr-2" />
+                New Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPw.new ? 'text' : 'password'}
+                  value={pwForm.newPassword}
+                  onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })}
+                  placeholder="Min 8 characters"
+                  className={`w-full px-4 py-3 pr-10 rounded-xl transition-all outline-none ${
+                    isDark
+                      ? 'bg-white/10 border border-[#588157]/30 text-white placeholder:text-[#5A5A52] focus:border-[#588157]'
+                      : 'bg-black/5 border border-[#588157]/25 text-[#1a1a14] placeholder:text-[#9a9a8a] focus:border-[#588157]'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw((p) => ({ ...p, new: !p.new }))}
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  style={{ color: isDark ? '#5A5A52' : '#9a9a8a' }}
+                >
+                  {showPw.new ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Confirm Password */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-[#9A9A8E]' : 'text-[#8a8a7a]'}`}>
+                <Lock className="w-4 h-4 inline mr-2" />
+                Confirm New Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPw.confirm ? 'text' : 'password'}
+                  value={pwForm.confirmPassword}
+                  onChange={(e) => setPwForm({ ...pwForm, confirmPassword: e.target.value })}
+                  placeholder="Repeat new password"
+                  className={`w-full px-4 py-3 pr-10 rounded-xl transition-all outline-none ${
+                    isDark
+                      ? 'bg-white/10 border border-[#588157]/30 text-white placeholder:text-[#5A5A52] focus:border-[#588157]'
+                      : 'bg-black/5 border border-[#588157]/25 text-[#1a1a14] placeholder:text-[#9a9a8a] focus:border-[#588157]'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw((p) => ({ ...p, confirm: !p.confirm }))}
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  style={{ color: isDark ? '#5A5A52' : '#9a9a8a' }}
+                >
+                  {showPw.confirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Feedback message */}
+          {pwMsg && (
+            <div
+              className="mt-4 px-4 py-3 rounded-xl text-sm"
+              style={{
+                background: pwMsg.type === 'success' ? 'rgba(88,129,87,0.15)' : 'rgba(220,38,38,0.1)',
+                border: `1px solid ${pwMsg.type === 'success' ? 'rgba(88,129,87,0.3)' : 'rgba(220,38,38,0.25)'}`,
+                color: pwMsg.type === 'success' ? '#588157' : '#f87171',
+              }}
+            >
+              {pwMsg.text}
+            </div>
+          )}
+
+          <button
+            onClick={handleChangePassword}
+            disabled={changingPassword}
+            className="mt-6 flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold text-sm transition-all duration-300 hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed"
+            style={{
+              background: 'linear-gradient(135deg, #3a5a40 0%, #344e41 100%)',
+              color: '#ffffff',
+            }}
+          >
+            {changingPassword ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <KeyRound className="w-4 h-4" />
+            )}
+            {changingPassword ? 'Updating...' : 'Update Password'}
+          </button>
         </div>
       </motion.div>
     </div>

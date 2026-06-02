@@ -1,15 +1,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-
-// Mock data - In production, this would come from database
-const mockSegments = [
-  { id: 1, title: 'Robo Wars', participants: 48, prize: '$5,000', status: 'Active', duration: '3 Hours', color: 'from-orange-500/20 to-red-500/20' },
-  { id: 2, title: 'Line Follower', participants: 32, prize: '$2,000', status: 'Active', duration: '2 Hours', color: 'from-blue-500/20 to-cyan-500/20' },
-  { id: 3, title: 'Drone Racing', participants: 24, prize: '$3,500', status: 'Upcoming', duration: '4 Hours', color: 'from-purple-500/20 to-pink-500/20' },
-  { id: 4, title: 'AI Hackathon', participants: 150, prize: '$10,000', status: 'Registration Open', duration: '24 Hours', color: 'from-[#588157]/20 to-[#a3b18a]/20' },
-  { id: 5, title: 'Maze Solver', participants: 20, prize: '$1,500', status: 'Active', duration: '1.5 Hours', color: 'from-amber-500/20 to-yellow-500/20' },
-];
 
 export async function GET(request: Request) {
   try {
@@ -27,41 +19,52 @@ export async function GET(request: Request) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const search = searchParams.get("search") || "";
-    const sortBy = searchParams.get("sortBy") || "title";
+    const sortBy = searchParams.get("sortBy") || "id";
     const sortOrder = (searchParams.get("sortOrder") || "asc") as "asc" | "desc";
 
-    // Filter segments based on search
-    let filtered = mockSegments;
-    if (search) {
-      const searchLower = search.toLowerCase();
-      filtered = mockSegments.filter(
-        (segment) =>
-          segment.title.toLowerCase().includes(searchLower) ||
-          segment.status.toLowerCase().includes(searchLower)
-      );
+    // Build query conditions
+    const where = search ? {
+      OR: [
+        { name: { contains: search, mode: "insensitive" as const } },
+        { description: { contains: search, mode: "insensitive" as const } },
+        { status: { contains: search, mode: "insensitive" as const } },
+      ],
+    } : {};
+
+    // Map frontend/mock keys to database column names
+    const allowedSortFields = [
+      "id", "name", "description", "rules", "prizePool", "category",
+      "type", "difficulty", "teamSize", "fee", "deadline",
+      "location", "scheduleText", "ruleBookUrl", "status", "imageUrl"
+    ];
+    let dbSortBy = sortBy === "title" ? "name" : (sortBy === "prize" ? "prizePool" : sortBy);
+    if (!allowedSortFields.includes(dbSortBy)) {
+      dbSortBy = "id";
     }
 
-    // Sort segments
-    const sorted = filtered.sort((a, b) => {
-      let aVal = a[sortBy as keyof typeof a];
-      let bVal = b[sortBy as keyof typeof b];
+    const skip = (page - 1) * limit;
 
-      // Handle numeric sorting
-      if (typeof aVal === "number" && typeof bVal === "number") {
-        return sortOrder === "asc" ? aVal - bVal : bVal - aVal;
-      }
+    // Fetch items and total count
+    const [dbItems, total] = await Promise.all([
+      prisma.segment.findMany({
+        where,
+        orderBy: {
+          [dbSortBy]: sortOrder,
+        },
+        skip,
+        take: limit,
+      }),
+      prisma.segment.count({ where }),
+    ]);
 
-      // Handle string sorting
-      if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
-      if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    // Paginate
-    const total = sorted.length;
     const totalPages = Math.ceil(total / limit);
-    const start = (page - 1) * limit;
-    const items = sorted.slice(start, start + limit);
+
+    // Map database fields to mock fields to support legacy elements that expect 'title' or 'prize'
+    const items = dbItems.map((item) => ({
+      ...item,
+      title: item.name,      // Legacy mapping
+      prize: item.prizePool, // Legacy mapping
+    }));
 
     return NextResponse.json(
       {
@@ -101,34 +104,69 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { title, participants, prize, status, duration, color } = body;
+    
+    // Parse name and prizePool with fallback to title and prize from older client calls
+    const name = body.name || body.title;
+    const description = body.description || "";
+    const rules = body.rules || "";
+    const prizePool = body.prizePool || body.prize || "$0";
+    const category = body.category || "General";
+    const type = body.type || "Team";
+    const difficulty = body.difficulty || "Medium";
+    const teamSize = body.teamSize || "TBA";
+    const fee = body.fee || "TBA";
+    const deadline = body.deadline || "TBA";
+    const location = body.location || "TBA";
+    const scheduleText = body.scheduleText || "TBA";
+    const ruleBookUrl = body.ruleBookUrl || null;
+    const highlights = Array.isArray(body.highlights) ? body.highlights : [];
+    const status = body.status || "active";
+    const imageUrl = body.imageUrl || null;
 
-    if (!title || !status) {
+    if (!name || !status) {
       return NextResponse.json(
         {
           success: false,
           error: "VALIDATION_ERROR",
-          message: "Missing required fields: title, status",
+          message: "Missing required fields: name/title, status",
         },
         { status: 400 }
       );
     }
 
-    // Create new segment (in production, save to database)
-    const newSegment = {
-      id: Math.max(...mockSegments.map((s) => s.id)) + 1,
-      title,
-      participants: participants || 0,
-      prize: prize || "$0",
-      status,
-      duration: duration || "0 Hours",
-      color: color || "from-gray-500/20 to-gray-500/20",
+    // Save directly to the database via Prisma
+    const newSegment = await prisma.segment.create({
+      data: {
+        name,
+        description,
+        rules,
+        prizePool,
+        category,
+        type,
+        difficulty,
+        teamSize,
+        fee,
+        deadline,
+        location,
+        scheduleText,
+        ruleBookUrl,
+        highlights,
+        status,
+        imageUrl,
+      },
+    });
+
+    // Return mapped segment to client
+    const mappedSegment = {
+      ...newSegment,
+      title: newSegment.name,
+      prize: newSegment.prizePool,
     };
 
     return NextResponse.json(
       {
         success: true,
-        data: newSegment,
+        data: mappedSegment,
         message: "Segment created successfully",
       },
       { status: 201 }

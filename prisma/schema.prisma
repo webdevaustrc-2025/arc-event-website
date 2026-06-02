@@ -67,6 +67,16 @@ model Segment {
   description   String
   rules         String
   prizePool     String
+  category      String         @default("General")
+  type          String         @default("Team")
+  difficulty    String         @default("Medium")
+  teamSize      String         @default("TBA")
+  fee           String         @default("TBA")
+  deadline      String         @default("TBA")
+  location      String         @default("TBA")
+  scheduleText  String         @default("TBA")
+  ruleBookUrl   String?
+  highlights    String[]       @default([])
   status        String         @default("active")
   imageUrl      String?
   certificates  Certificate[]
