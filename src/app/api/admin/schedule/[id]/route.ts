@@ -6,12 +6,18 @@ import { z } from "zod";
 
 const scheduleUpdateSchema = z.object({
   title: z.string().min(1, "Title is required").optional(),
-  startTime: z.string().refine((val) => !isNaN(Date.parse(val)), {
-    message: "Invalid start time format",
-  }).optional(),
-  endTime: z.string().refine((val) => !isNaN(Date.parse(val)), {
-    message: "Invalid end time format",
-  }).optional(),
+  startTime: z
+    .string()
+    .refine((val: string) => !isNaN(Date.parse(val)), {
+      message: "Invalid start time format",
+    })
+    .optional(),
+  endTime: z
+    .string()
+    .refine((val: string) => !isNaN(Date.parse(val)), {
+      message: "Invalid end time format",
+    })
+    .optional(),
   venue: z.string().min(1, "Venue is required").optional(),
   segmentId: z.number().nullable().optional(),
   displayOrder: z.number().int().optional(),
@@ -19,7 +25,7 @@ const scheduleUpdateSchema = z.object({
 
 export async function PUT(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -39,7 +45,7 @@ export async function PUT(
     if (!result.success) {
       return NextResponse.json(
         { message: result.error.errors[0].message },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -49,7 +55,10 @@ export async function PUT(
       where: { id: scheduleId },
     });
     if (!existing) {
-      return NextResponse.json({ message: "Schedule item not found" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Schedule item not found" },
+        { status: 404 },
+      );
     }
 
     if (data.segmentId) {
@@ -59,7 +68,7 @@ export async function PUT(
       if (!segment) {
         return NextResponse.json(
           { message: "Associated segment not found" },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -89,14 +98,14 @@ export async function PUT(
     console.error("Failed to update schedule:", error);
     return NextResponse.json(
       { message: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -114,7 +123,10 @@ export async function DELETE(
       where: { id: scheduleId },
     });
     if (!existing) {
-      return NextResponse.json({ message: "Schedule item not found" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Schedule item not found" },
+        { status: 404 },
+      );
     }
 
     await prisma.schedule.delete({
@@ -126,7 +138,7 @@ export async function DELETE(
     console.error("Failed to delete schedule:", error);
     return NextResponse.json(
       { message: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
