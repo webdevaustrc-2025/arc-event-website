@@ -40,6 +40,8 @@ export async function POST(request: Request) {
         email,
         passwordHash: hashedPassword,
         role: "user",
+        avatarUrl:
+          "https://res.cloudinary.com/dxyhzgrul/image/upload/v1780398181/silver-membership-icon-default-avatar-profile-icon-membership-icon-social-media-user-image-vector-illustration_561158-4215_bdeofc.jpg",
       },
     });
 

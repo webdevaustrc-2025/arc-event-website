@@ -1,10 +1,46 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { XCircle, ShieldCheck, Calendar, Mail } from 'lucide-react';
+import { XCircle, ShieldCheck, Calendar, Mail, Loader2 } from 'lucide-react';
 import { Link } from '@/lib/router-compat';
 
 export default function ClosedRegistrationPage() {
+  const [loading, setLoading] = useState(true);
+  const [details, setDetails] = useState({
+    eventName: 'ARC 3.0',
+    eventDate: 'June 15-17, 2026',
+    contactEmail: 'support@austrc-fest.org',
+  });
+
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+          const settings = await res.json();
+          setDetails({
+            eventName: settings.event_name || 'ARC 3.0',
+            eventDate: settings.event_date || 'June 15-17, 2026',
+            contactEmail: settings.contact_email || 'support@austrc-fest.org',
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadSettings();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen relative flex items-center justify-center pt-24 pb-12 px-6 bg-[#0A0A0F]">
+        <Loader2 className="w-10 h-10 animate-spin text-[#588157]" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen relative flex items-center justify-center pt-24 pb-12 px-6">
       {/* No glow blob — clean flat design */}
@@ -35,7 +71,7 @@ export default function ClosedRegistrationPage() {
           </h2>
 
           <p className="text-gray-400 mb-8 leading-relaxed">
-            We've reached our maximum capacity. Registration for ARC 3.0 2025 is now closed. Thank you for your interest!
+            We've reached our maximum capacity. Registration for {details.eventName} is now closed. Thank you for your interest!
           </p>
 
           {/* Stats */}
@@ -54,7 +90,7 @@ export default function ClosedRegistrationPage() {
           <div className="bg-white/5 border border-white/10 rounded-xl p-4 mb-6">
             <div className="flex items-center justify-center gap-2 text-gray-300">
               <Calendar className="w-4 h-4 text-[#588157]" />
-              <span className="text-sm">Event Date: <span className="font-semibold text-white">June 15-17, 2025</span></span>
+              <span className="text-sm">Event Date: <span className="font-semibold text-white">{details.eventDate}</span></span>
             </div>
           </div>
 
@@ -79,8 +115,8 @@ export default function ClosedRegistrationPage() {
             <p className="text-sm text-gray-500 flex items-center justify-center gap-2">
               <Mail className="w-4 h-4" />
               Questions? Email us at{' '}
-              <a href="mailto:info@ARC 3.02025.com" className="text-[#588157] hover:underline">
-                info@ARC 3.02025.com
+              <a href={`mailto:${details.contactEmail}`} className="text-[#588157] hover:underline">
+                {details.contactEmail}
               </a>
             </p>
           </div>
@@ -88,7 +124,7 @@ export default function ClosedRegistrationPage() {
 
         <div className="mt-8 text-center text-sm text-gray-500 flex items-center justify-center gap-2">
           <ShieldCheck className="w-4 h-4" />
-          <span>See you at ARC 3.0 2025</span>
+          <span>See you at {details.eventName}</span>
         </div>
       </div>
     </div>

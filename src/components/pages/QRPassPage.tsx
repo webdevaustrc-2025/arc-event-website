@@ -1,22 +1,72 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useTheme } from 'next-themes';
 import { QRGenerator } from '@/components/dashboard/QRGenerator';
+import { Loader2, QrCode } from 'lucide-react';
+import { Link } from '@/lib/router-compat';
 
 export default function QRPassPage() {
   const { theme } = useTheme();
   const isDark = theme === 'dark' || !theme;
+  const [loading, setLoading] = useState(true);
+  const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
+  const [events, setEvents] = useState<Array<{
+    id: number;
+    title: string;
+    qrToken: string;
+    registrationCode?: string;
+    registrationDate?: string;
+    teamName?: string;
+    registrationStatus?: string;
+  }>>([]);
+  const [userName, setUserName] = useState('');
+  const [error, setError] = useState('');
 
-  const [selectedEvent, setSelectedEvent] = useState('robo-soccer');
+  useEffect(() => {
+    async function fetchQRData() {
+      try {
+        const res = await fetch('/api/dashboard/summary');
+        if (res.ok) {
+          const summaryData = await res.json();
+          setUserName(summaryData.user?.name || 'Participant');
+          const enrolled = (summaryData.events || []).map((e: any) => ({
+            id: e.id,
+            title: e.title,
+            qrToken: e.qrToken,
+            registrationCode: e.registrationCode,
+            registrationDate: e.registrationDate,
+            teamName: e.teamName,
+            registrationStatus: e.registrationStatus,
+          }));
+          setEvents(enrolled);
+          if (enrolled.length > 0) {
+            setSelectedEventId(enrolled[0].id);
+          }
+        } else {
+          const data = await res.json().catch(() => ({}));
+          setError(data.message || 'Failed to load QR passes.');
+        }
+      } catch (err) {
+        console.error('Error fetching QR data:', err);
+        setError('Network error while loading QR passes.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchQRData();
+  }, []);
 
-  const events = [
-    { id: 'robo-soccer', name: 'Robo Soccer', uniqueId: 'RSF-2026-001234' },
-    { id: 'line-follower', name: 'Line Follower', uniqueId: 'RSF-2026-001235' },
-    { id: 'sumo-bot', name: 'Sumo Bot', uniqueId: 'RSF-2026-001236' },
-  ];
+  const currentEvent = events.find((e) => e.id === selectedEventId);
 
-  const currentEvent = events.find((e) => e.id === selectedEvent) || events[0];
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 gap-4">
+        <Loader2 className="w-10 h-10 animate-spin text-[#588157]" />
+        <p className="text-gray-400 text-sm">Loading QR passes...</p>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -33,47 +83,93 @@ export default function QRPassPage() {
         </p>
       </div>
 
-      {/* Event Selector */}
-      <div className="mb-8">
-        <label
-          className={`block text-sm font-medium mb-3 ${isDark ? 'text-[#9A9A8E]' : 'text-[#8a8a7a]'}`}
+      {error ? (
+        <div
+          className="p-8 rounded-2xl text-center backdrop-blur-md"
+          style={{
+            background: isDark ? 'rgba(220,38,38,0.08)' : 'rgba(220,38,38,0.06)',
+            border: '1px solid rgba(220,38,38,0.25)',
+          }}
         >
-          Select Event
-        </label>
-        <div className="flex flex-wrap gap-3">
-          {events.map((event) => (
-            <button
-              key={event.id}
-              onClick={() => setSelectedEvent(event.id)}
-              className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                selectedEvent === event.id
-                  ? isDark
-                    ? 'bg-[#588157]/20 text-[#a3b18a] border-2 border-[#588157]/50'
-                    : 'bg-[#588157]/15 text-[#3a5a40] border-2 border-[#588157]/40'
-                  : isDark
-                  ? 'bg-white/5 text-[#9A9A8E] border-2 border-transparent hover:bg-white/10'
-                  : 'bg-black/5 text-[#8a8a7a] border-2 border-transparent hover:bg-black/10'
-              }`}
-            >
-              {event.name}
-            </button>
-          ))}
+          <QrCode className="w-12 h-12 mx-auto mb-3 text-red-400" />
+          <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-[#1a1a14]'}`}>Unable to Load QR Passes</h3>
+          <p className="text-sm text-red-300">{error}</p>
         </div>
-      </div>
+      ) : events.length > 0 && currentEvent ? (
+        <>
+          {/* Event Selector */}
+          <div className="mb-8">
+            <label
+              className={`block text-sm font-medium mb-3 ${isDark ? 'text-[#9A9A8E]' : 'text-[#8a8a7a]'}`}
+            >
+              Select Event
+            </label>
+            <div className="flex flex-wrap gap-3">
+              {events.map((event) => (
+                <button
+                  key={event.id}
+                  onClick={() => setSelectedEventId(event.id)}
+                  className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                    selectedEventId === event.id
+                      ? isDark
+                        ? 'bg-[#588157]/20 text-[#a3b18a] border-2 border-[#588157]/50'
+                        : 'bg-[#588157]/15 text-[#3a5a40] border-2 border-[#588157]/40'
+                      : isDark
+                      ? 'bg-white/5 text-[#9A9A8E] border-2 border-transparent hover:bg-white/10'
+                      : 'bg-black/5 text-[#8a8a7a] border-2 border-transparent hover:bg-black/10'
+                  }`}
+                >
+                  {event.title}
+                </button>
+              ))}
+            </div>
+          </div>
 
-      {/* QR Code */}
-      <motion.div
-        key={selectedEvent}
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        <QRGenerator
-          eventName={currentEvent.name}
-          userName="Alex Rivera"
-          uniqueId={currentEvent.uniqueId}
-        />
-      </motion.div>
+          {/* QR Code */}
+          <motion.div
+            key={selectedEventId}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <QRGenerator
+              eventName={currentEvent.title}
+              userName={userName}
+              uniqueId={currentEvent.qrToken}
+              registrationCode={currentEvent.registrationCode}
+              registrationDate={currentEvent.registrationDate}
+              teamName={currentEvent.teamName}
+              registrationStatus={currentEvent.registrationStatus}
+            />
+          </motion.div>
+        </>
+      ) : (
+        <div
+          className="p-12 rounded-2xl text-center backdrop-blur-md"
+          style={{
+            background: isDark
+              ? 'rgba(58,90,64,0.03)'
+              : 'rgba(58,90,64,0.02)',
+            border: `1px dashed ${isDark ? 'rgba(163,177,138,0.2)' : 'rgba(58,90,64,0.2)'}`,
+          }}
+        >
+          <QrCode className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-[#5A5A52]' : 'text-[#8a8a7a]'}`} />
+          <h3 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-[#1a1a14]'}`}>No Registered Events</h3>
+          <p className={`text-sm mb-6 max-w-md mx-auto ${isDark ? 'text-[#9A9A8E]' : 'text-[#8a8a7a]'}`}>
+            You need to be registered for a segment in order to generate an entry QR code.
+          </p>
+          <Link
+            to="/segments"
+            className="inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105"
+            style={{
+              background: 'linear-gradient(135deg, #3a5a40 0%, #344e41 100%)',
+              color: '#ffffff',
+            }}
+          >
+            Register Now
+          </Link>
+        </div>
+      )}
 
       {/* Instructions */}
       <motion.div

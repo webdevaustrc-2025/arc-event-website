@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { useTheme } from 'next-themes';
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
 import { Search, Filter, MoreVertical, Check, X, Shield, Users } from 'lucide-react';
 
 const mockUsers = [
@@ -14,10 +14,8 @@ const mockUsers = [
 ];
 
 export default function AdminUsersPage() {
-  const { theme } = useTheme();
+  const { isDark } = useResolvedTheme();
   const [searchTerm, setSearchTerm] = useState('');
-
-  const isDark = theme === 'dark';
   const cardBg = isDark ? 'bg-[#111116] border-white/[0.07]' : 'bg-white border-black/[0.08]';
   const inputBg = isDark ? 'bg-[#18181f] border-white/[0.07] text-[#F5F5F0]' : 'bg-[#F0EDE6] border-black/[0.08] text-[#1a1a14]';
   const textColor = isDark ? 'text-[#F5F5F0]' : 'text-[#1a1a14]';

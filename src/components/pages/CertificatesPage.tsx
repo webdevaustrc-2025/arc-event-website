@@ -1,24 +1,80 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Download, Eye, Award, Calendar, Trophy } from 'lucide-react';
+import { Download, Eye, Award, Calendar, Trophy, Loader2, Lock } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { Link } from '@/lib/router-compat';
 
 export default function CertificatesPage() {
   const { theme } = useTheme();
   const isDark = theme === 'dark' || !theme;
   const [selectedCert, setSelectedCert] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [enabled, setEnabled] = useState(true);
 
-  const certificates = [
-    {
-      id: 1,
-      event: 'Sumo Bot Championship',
-      type: 'Participation',
-      date: 'May 18, 2026',
-      rank: '4th Place',
-      image: 'https://images.unsplash.com/photo-1535378917042-10a22c95931a?w=800&q=80',
-    },
-  ];
+  const [certificates, setCertificates] = useState<Array<{
+    id: number;
+    event: string;
+    type: string;
+    date: string;
+    rank: string;
+    image: string;
+    fileUrl: string;
+  }>>([]);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [settingsRes, certificatesRes] = await Promise.all([
+          fetch('/api/settings'),
+          fetch('/api/dashboard/certificates'),
+        ]);
+
+        if (settingsRes.ok) {
+          const settings = await settingsRes.json();
+          setEnabled(settings.enable_certificates !== 'false');
+        }
+
+        if (certificatesRes.ok) {
+          const certs = await certificatesRes.json();
+          setCertificates(certs);
+        }
+      } catch (err) {
+        console.error('Error loading certificates data:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 gap-4">
+        <Loader2 className="w-10 h-10 animate-spin text-[#588157]" />
+        <p className="text-gray-400 text-sm">Loading certificates...</p>
+      </div>
+    );
+  }
+
+  if (!enabled) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center max-w-md mx-auto px-4">
+        <div className={`p-5 rounded-full mb-6 ${isDark ? 'bg-white/5 text-gray-400' : 'bg-gray-100 text-gray-700'}`}>
+          <Lock className="w-12 h-12" />
+        </div>
+        <h2 className={`text-2xl font-bold mb-3 ${isDark ? 'text-white' : 'text-[#1a1a14]'}`} style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+          Certificates Locked
+        </h2>
+        <p className={`text-sm leading-relaxed mb-8 ${isDark ? 'text-[#9A9A8E]' : 'text-[#8a8a7a]'}`}>
+          Certificate validation and download options are currently closed by the event administrators. Please check back after final results are published.
+        </p>
+        <Link to="/" className="px-6 py-2.5 rounded-lg bg-[#3a5a40] text-white hover:bg-[#344e41] font-semibold transition-all">
+          Go Back Home
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div>

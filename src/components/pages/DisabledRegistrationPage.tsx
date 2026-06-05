@@ -1,17 +1,52 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Lock, Mail, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Lock, Mail, ArrowRight, ShieldCheck, Loader2 } from 'lucide-react';
 import { Link } from '@/lib/router-compat';
 
 export default function DisabledRegistrationPage() {
   const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [details, setDetails] = useState({
+    eventName: 'ARC 3.0',
+    eventDate: 'June 15-17, 2026',
+    contactEmail: 'support@austrc-fest.org',
+  });
+
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+          const settings = await res.json();
+          setDetails({
+            eventName: settings.event_name || 'ARC 3.0',
+            eventDate: settings.event_date || 'June 15-17, 2026',
+            contactEmail: settings.contact_email || 'support@austrc-fest.org',
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadSettings();
+  }, []);
 
   const handleNotifySubmit = (e: React.FormEvent) => {
     e.preventDefault();
     alert('Thank you! We will notify you when registration opens.');
     setEmail('');
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen relative flex items-center justify-center pt-24 pb-12 px-6 bg-[#0A0A0F]">
+        <Loader2 className="w-10 h-10 animate-spin text-[#588157]" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen relative flex items-center justify-center pt-24 pb-12 px-6">
@@ -39,11 +74,11 @@ export default function DisabledRegistrationPage() {
           </div>
 
           <h2 className="text-4xl font-bold mb-4 text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            Registration Not Open Yet
+            Registration Disabled
           </h2>
 
           <p className="text-gray-400 mb-8 leading-relaxed">
-            Official registration opens on May 1st. Secure your spot by joining the waitlist to be notified instantly.
+            Official registration for {details.eventName} is not open yet. Secure your spot by joining the waitlist to be notified instantly.
           </p>
 
           {/* Countdown */}
@@ -82,7 +117,7 @@ export default function DisabledRegistrationPage() {
 
         <div className="mt-8 text-center text-sm text-gray-500 flex items-center justify-center gap-2">
           <ShieldCheck className="w-4 h-4" />
-          <span>Secured by ARC 3.0 Org</span>
+          <span>Secured by {details.eventName} Org</span>
         </div>
       </div>
     </div>

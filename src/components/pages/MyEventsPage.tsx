@@ -1,7 +1,7 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Plus, Filter } from 'lucide-react';
+import { Plus, Filter, Loader2, Calendar } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { EventCard } from '@/components/dashboard/EventCard';
 import { Link } from '@/lib/router-compat';
@@ -10,38 +10,65 @@ export default function MyEventsPage() {
   const { theme } = useTheme();
   const isDark = theme === 'dark' || !theme;
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'ongoing' | 'completed'>('all');
+  const [loading, setLoading] = useState(true);
+  const [myEvents, setMyEvents] = useState<Array<{
+    id: number;
+    title: string;
+    date: string;
+    time: string;
+    location: string;
+    status: 'upcoming' | 'ongoing' | 'completed';
+    image: string;
+    segmentId?: number | null;
+    registrationCode?: string;
+    registrationDate?: string;
+    teamName?: string;
+    registrationStatus?: string;
+    paymentStatus?: string;
+  }>>([]);
+  const [error, setError] = useState('');
 
-  const myEvents = [
-    {
-      id: 1,
-      title: 'Robo Soccer',
-      date: 'May 20, 2026',
-      time: '10:00 AM',
-      location: 'Arena A, Main Hall',
-      status: 'upcoming' as const,
-      image: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800&q=80',
-    },
-    {
-      id: 2,
-      title: 'Line Follower',
-      date: 'May 20, 2026',
-      time: '2:00 PM',
-      location: 'Track B, Engineering Wing',
-      status: 'upcoming' as const,
-      image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80',
-    },
-    {
-      id: 4,
-      title: 'Sumo Bot',
-      date: 'May 18, 2026',
-      time: '4:00 PM',
-      location: 'Ring C',
-      status: 'completed' as const,
-      image: 'https://images.unsplash.com/photo-1535378917042-10a22c95931a?w=800&q=80',
-    },
-  ];
+  useEffect(() => {
+    async function fetchEvents() {
+      try {
+        const res = await fetch('/api/dashboard/summary');
+        if (res.ok) {
+          const summaryData = await res.json();
+          setMyEvents(summaryData.events || []);
+        } else {
+          const errorData = await res.json().catch(() => ({}));
+          setError(errorData.message || 'Failed to load your events.');
+        }
+      } catch (err) {
+        console.error('Error fetching registered events:', err);
+        setError('Network error while loading your events.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchEvents();
+  }, []);
 
   const filteredEvents = filter === 'all' ? myEvents : myEvents.filter((e) => e.status === filter);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 gap-4">
+        <Loader2 className="w-10 h-10 animate-spin text-[#588157]" />
+        <p className="text-gray-400 text-sm">Loading your events...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`text-center py-20 ${isDark ? 'text-[#9A9A8E]' : 'text-[#8a8a7a]'}`}>
+        <Calendar className="w-16 h-16 mx-auto mb-4 text-red-400" />
+        <h1 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-[#1a1a14]'}`}>Unable to Load Events</h1>
+        <p className="text-sm text-red-300">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -117,7 +144,23 @@ export default function MyEventsPage() {
           animate={{ opacity: 1 }}
           className={`text-center py-20 ${isDark ? 'text-[#9A9A8E]' : 'text-[#8a8a7a]'}`}
         >
-          <p className="text-lg">No {filter !== 'all' && filter} events found.</p>
+          <Calendar className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-[#5A5A52]' : 'text-[#8a8a7a]'}`} />
+          <p className="text-lg mb-2">No {filter !== 'all' ? filter : ''} events found.</p>
+          {filter === 'all' && (
+            <p className="text-sm mb-6">Explore the segments page to register for your first event!</p>
+          )}
+          {filter === 'all' && (
+            <Link
+              to="/segments"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all duration-300"
+              style={{
+                background: 'linear-gradient(135deg, #3a5a40 0%, #344e41 100%)',
+                color: '#ffffff',
+              }}
+            >
+              Explore Segments
+            </Link>
+          )}
         </motion.div>
       )}
     </div>

@@ -9,9 +9,21 @@ interface QRGeneratorProps {
   eventName: string;
   userName: string;
   uniqueId: string;
+  registrationCode?: string;
+  registrationDate?: string;
+  teamName?: string;
+  registrationStatus?: string;
 }
 
-export const QRGenerator: React.FC<QRGeneratorProps> = ({ eventName, userName, uniqueId }) => {
+export const QRGenerator: React.FC<QRGeneratorProps> = ({
+  eventName,
+  userName,
+  uniqueId,
+  registrationCode,
+  registrationDate,
+  teamName,
+  registrationStatus,
+}) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark' || !theme;
   const qrRef = useRef<HTMLDivElement>(null);
@@ -43,7 +55,8 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({ eventName, userName, u
           const pngFile = canvas.toDataURL('image/png');
 
           const downloadLink = document.createElement('a');
-          downloadLink.download = `${eventName}-QR-Pass.png`;
+          const safeEventName = eventName.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '');
+          downloadLink.download = `${safeEventName || 'Event'}-QR-Pass.png`;
           downloadLink.href = pngFile;
           downloadLink.click();
         };
@@ -53,11 +66,16 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({ eventName, userName, u
     }
   };
 
+  const expandQR = () => {
+    qrRef.current?.requestFullscreen?.();
+  };
+
   const qrValue = JSON.stringify({
+    type: 'ARC_ENTRY_PASS',
     event: eventName,
     user: userName,
-    id: uniqueId,
-    timestamp: Date.now(),
+    registrationCode,
+    qrToken: uniqueId,
   });
 
   return (
@@ -118,9 +136,41 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({ eventName, userName, u
             </p>
             <p className={`font-semibold ${isDark ? 'text-white' : 'text-[#1a1a14]'}`}>{userName}</p>
           </div>
+          {teamName && (
+            <div>
+              <p className={`text-xs uppercase tracking-wider mb-1 ${isDark ? 'text-[#5A5A52]' : 'text-[#8a8a7a]'}`}>
+                Team
+              </p>
+              <p className={`font-semibold ${isDark ? 'text-white' : 'text-[#1a1a14]'}`}>{teamName}</p>
+            </div>
+          )}
+          {registrationDate && (
+            <div>
+              <p className={`text-xs uppercase tracking-wider mb-1 ${isDark ? 'text-[#5A5A52]' : 'text-[#8a8a7a]'}`}>
+                Registered
+              </p>
+              <p className={`font-semibold ${isDark ? 'text-white' : 'text-[#1a1a14]'}`}>{registrationDate}</p>
+            </div>
+          )}
+          {registrationStatus && (
+            <div>
+              <p className={`text-xs uppercase tracking-wider mb-1 ${isDark ? 'text-[#5A5A52]' : 'text-[#8a8a7a]'}`}>
+                Status
+              </p>
+              <p className={`font-semibold capitalize ${isDark ? 'text-white' : 'text-[#1a1a14]'}`}>{registrationStatus}</p>
+            </div>
+          )}
           <div>
             <p className={`text-xs uppercase tracking-wider mb-1 ${isDark ? 'text-[#5A5A52]' : 'text-[#8a8a7a]'}`}>
-              ID
+              Registration ID
+            </p>
+            <p className={`font-mono text-sm font-semibold ${isDark ? 'text-[#588157]' : 'text-[#3a5a40]'}`}>
+              {registrationCode || 'N/A'}
+            </p>
+          </div>
+          <div>
+            <p className={`text-xs uppercase tracking-wider mb-1 ${isDark ? 'text-[#5A5A52]' : 'text-[#8a8a7a]'}`}>
+              QR Token
             </p>
             <p className={`font-mono text-sm font-semibold ${isDark ? 'text-[#588157]' : 'text-[#3a5a40]'}`}>
               {uniqueId}
@@ -142,6 +192,9 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({ eventName, userName, u
             Download
           </button>
           <button
+            type="button"
+            onClick={expandQR}
+            aria-label="View QR code full screen"
             className="px-4 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105"
             style={{
               background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
