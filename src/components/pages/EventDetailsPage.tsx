@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import { motion } from 'motion/react';
-import { Link, useNavigate } from '@/lib/router-compat';
+import { Link, useNavigate, useParams } from '@/lib/router-compat';
 import { Calendar, MapPin, Clock, Trophy, Medal, ArrowLeft, FileText, Zap, Target, Shield, Award } from 'lucide-react';
 
 interface DbSegment {
@@ -104,28 +104,31 @@ const eventData: Record<string, unknown> = {
 
 export default function EventDetailsPage({ dbSegment }: { dbSegment?: DbSegment }) {
   const navigate = useNavigate();
+  const params = useParams();
+  const idStr = params.id || '1';
+  const dummyEvent = (eventData[idStr] || eventData['1']) as any;
 
   const event = dbSegment
     ? {
         id: dbSegment.id,
         title: dbSegment.name,
         tagline: dbSegment.description,
-        category: dbSegment.category || 'General',
-        image: dbSegment.imageUrl || '/globe.svg',
-        schedule: dbSegment.scheduleText || 'TBA',
-        location: dbSegment.location || 'TBA',
-        deadline: dbSegment.deadline || 'TBA',
+        category: dbSegment.category && dbSegment.category !== 'General' ? dbSegment.category : (dummyEvent?.category || 'General'),
+        image: dbSegment.imageUrl || dummyEvent?.image || '/globe.svg',
+        schedule: dbSegment.scheduleText && dbSegment.scheduleText !== 'TBA' ? dbSegment.scheduleText : (dummyEvent?.schedule || 'TBA'),
+        location: dbSegment.location && dbSegment.location !== 'TBA' ? dbSegment.location : (dummyEvent?.location || 'TBA'),
+        deadline: dbSegment.deadline && dbSegment.deadline !== 'TBA' ? dbSegment.deadline : (dummyEvent?.deadline || 'TBA'),
         prizePool: {
-          champion: dbSegment.prizePool || 'Not Specified',
-          runnerUp: 'TBA',
+          champion: dbSegment.prizePool || dummyEvent?.prizePool?.champion || 'Not Specified',
+          runnerUp: dummyEvent?.prizePool?.runnerUp || 'TBA',
         },
-        teamSize: dbSegment.teamSize || 'TBA',
-        fee: dbSegment.fee || 'TBA',
-        description: dbSegment.description,
-        highlights: dbSegment.highlights?.length ? dbSegment.highlights : [dbSegment.rules || 'No rules specified'],
-        ruleBookUrl: dbSegment.ruleBookUrl,
+        teamSize: dbSegment.teamSize && dbSegment.teamSize !== 'TBA' ? dbSegment.teamSize : (dummyEvent?.teamSize || 'TBA'),
+        fee: dbSegment.fee && dbSegment.fee !== 'TBA' ? dbSegment.fee : (dummyEvent?.fee || 'TBA'),
+        description: dbSegment.description || dummyEvent?.description,
+        highlights: dbSegment.highlights?.length ? dbSegment.highlights : (dummyEvent?.highlights || [dbSegment.rules || 'No rules specified']),
+        ruleBookUrl: dbSegment.ruleBookUrl || dummyEvent?.ruleBookUrl,
       }
-    : null;
+    : (dummyEvent as any);
 
   if (!event) {
     return (

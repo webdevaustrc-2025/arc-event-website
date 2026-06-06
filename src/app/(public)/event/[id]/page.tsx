@@ -9,9 +9,14 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     return <EventDetailsPage />;
   }
 
-  const segment = await prisma.segment.findUnique({
-    where: { id },
-  });
+  let segment = null;
+  try {
+    segment = await prisma.segment.findUnique({
+      where: { id },
+    });
+  } catch (error) {
+    console.error(`Failed to fetch segment ${id} from database, falling back to dummy data:`, error);
+  }
 
   return <EventDetailsPage dbSegment={segment || undefined} />;
 }

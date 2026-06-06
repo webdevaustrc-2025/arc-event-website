@@ -15,6 +15,24 @@ interface DatabaseScheduleItem {
   segment: { id: number; name: string } | null;
 }
 
+const DUMMY_SCHEDULE: DatabaseScheduleItem[] = [
+  { id: 101, segmentId: null, title: 'Opening Ceremony', startTime: '2026-06-10T09:00:00Z', endTime: '2026-06-10T10:00:00Z', venue: 'Main Auditorium', displayOrder: 1, segment: null },
+  { id: 102, segmentId: 1, title: 'Robo Soccer - Group Stage', startTime: '2026-06-10T10:30:00Z', endTime: '2026-06-10T13:00:00Z', venue: 'Arena Alpha', displayOrder: 2, segment: { id: 1, name: 'Robo Soccer' } },
+  { id: 103, segmentId: 2, title: 'Line Follower - Qualifying', startTime: '2026-06-10T11:00:00Z', endTime: '2026-06-10T13:00:00Z', venue: 'Track Beta', displayOrder: 3, segment: { id: 2, name: 'Line Follower' } },
+  { id: 104, segmentId: null, title: 'Lunch Break', startTime: '2026-06-10T13:00:00Z', endTime: '2026-06-10T14:30:00Z', venue: 'Cafeteria', displayOrder: 4, segment: null },
+  { id: 105, segmentId: null, title: 'Combat Robotics - Prelims', startTime: '2026-06-10T14:30:00Z', endTime: '2026-06-10T17:00:00Z', venue: 'BattleBox Gamma', displayOrder: 5, segment: null },
+  { id: 106, segmentId: null, title: 'Day 1 Closing Remarks', startTime: '2026-06-10T17:00:00Z', endTime: '2026-06-10T18:00:00Z', venue: 'Main Auditorium', displayOrder: 6, segment: null },
+  { id: 201, segmentId: 3, title: 'Drone Race - Time Trials', startTime: '2026-06-11T09:00:00Z', endTime: '2026-06-11T12:00:00Z', venue: 'Outdoor Field', displayOrder: 1, segment: { id: 3, name: 'Drone Race' } },
+  { id: 202, segmentId: 4, title: 'Sumo Bot - Round of 32', startTime: '2026-06-11T11:00:00Z', endTime: '2026-06-11T13:00:00Z', venue: 'Arena Alpha', displayOrder: 2, segment: { id: 4, name: 'Sumo Bot' } },
+  { id: 203, segmentId: null, title: 'Lunch Break', startTime: '2026-06-11T13:00:00Z', endTime: '2026-06-11T14:00:00Z', venue: 'Cafeteria', displayOrder: 3, segment: null },
+  { id: 204, segmentId: null, title: 'Maze Solver - Attempts', startTime: '2026-06-11T14:00:00Z', endTime: '2026-06-11T16:30:00Z', venue: 'Lab Complex 2', displayOrder: 4, segment: null },
+  { id: 205, segmentId: null, title: 'App Dev Sprint - Kickoff', startTime: '2026-06-11T16:30:00Z', endTime: '2026-06-11T18:00:00Z', venue: 'Innovation Lab', displayOrder: 5, segment: null },
+  { id: 301, segmentId: 1, title: 'Robo Soccer - Finals', startTime: '2026-06-12T10:00:00Z', endTime: '2026-06-12T11:30:00Z', venue: 'Main Stage', displayOrder: 1, segment: { id: 1, name: 'Robo Soccer' } },
+  { id: 302, segmentId: null, title: 'Combat Robotics - Grand Finale', startTime: '2026-06-12T11:30:00Z', endTime: '2026-06-12T13:30:00Z', venue: 'Main Stage', displayOrder: 2, segment: null },
+  { id: 303, segmentId: null, title: 'Lunch Break', startTime: '2026-06-12T13:30:00Z', endTime: '2026-06-12T15:00:00Z', venue: 'Cafeteria', displayOrder: 3, segment: null },
+  { id: 304, segmentId: null, title: 'Award Ceremony & Gala', startTime: '2026-06-12T15:00:00Z', endTime: '2026-06-12T18:00:00Z', venue: 'Main Auditorium', displayOrder: 4, segment: null }
+];
+
 export default function SchedulePage({ dbSchedule }: { dbSchedule?: any[] }) {
   const [events, setEvents] = useState<DatabaseScheduleItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,9 +50,14 @@ export default function SchedulePage({ dbSchedule }: { dbSchedule?: any[] }) {
         const res = await fetch('/api/schedule');
         if (!res.ok) throw new Error('Failed to fetch');
         const data = await res.json();
-        setEvents(data);
+        if (data && data.length > 0) {
+          setEvents(data);
+        } else {
+          setEvents(DUMMY_SCHEDULE);
+        }
       } catch (error) {
         console.error('Error fetching schedule:', error);
+        setEvents(DUMMY_SCHEDULE);
       } finally {
         setLoading(false);
       }

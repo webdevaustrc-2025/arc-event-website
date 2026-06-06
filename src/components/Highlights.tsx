@@ -12,13 +12,14 @@ const photos = [
   "https://images.unsplash.com/flagged/photo-1568118782915-fa213a00a49b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkcm9uZSUyMHJhY2luZ3xlbnwxfHx8fDE3NzY1MzgxOTl8MA&ixlib=rb-4.1.0&q=80&w=1080"
 ];
 
-const leftColumnPhotos = [...photos, ...photos];
-const middleColumnPhotos = [...[...photos].reverse(), ...photos];
-const rightColumnPhotos = [...photos, ...photos];
-
 const galleryLabels = ['Robo Soccer', 'Engineering', 'Robotic Arms', 'Champions', 'Drone Racing'];
 
-export const Highlights = () => {
+export const Highlights = ({ dbPhotos }: { dbPhotos?: string[] }) => {
+  const activePhotos = dbPhotos && dbPhotos.length > 0 ? dbPhotos : photos;
+  const leftColumnPhotos = [...activePhotos, ...activePhotos];
+  const middleColumnPhotos = [...[...activePhotos].reverse(), ...activePhotos];
+  const rightColumnPhotos = [...activePhotos, ...activePhotos];
+
   return (
     <section className="py-24 sm:py-32 relative overflow-hidden">
       {/* ── Image gallery atmosphere — deeper, darker, more cinematic ── */}
@@ -125,7 +126,7 @@ export const Highlights = () => {
 
         {/* Mobile: single column */}
         <div className="flex flex-col gap-4 md:hidden">
-          {photos.slice(0, 4).map((src, i) => (
+          {activePhotos.slice(0, 4).map((src, i) => (
             <div
               key={i}
               className="relative overflow-hidden group cursor-pointer"
@@ -151,7 +152,7 @@ export const Highlights = () => {
                   border: '1px solid rgba(88,129,87,0.15)',
                 }}
               >
-                <p className="text-[#6a8a6a] text-[11px] uppercase tracking-[0.12em] font-medium">{galleryLabels[i]}</p>
+                <p className="text-[#6a8a6a] text-[11px] uppercase tracking-[0.12em] font-medium">{galleryLabels[i % galleryLabels.length]}</p>
               </div>
             </div>
           ))}
@@ -163,7 +164,7 @@ export const Highlights = () => {
           <div className="relative h-full overflow-hidden rounded-[20px]">
             <motion.div
               className="flex flex-col gap-5"
-              animate={{ y: [0, -50 * leftColumnPhotos.length] }}
+              animate={{ y: ["0%", "-50%"] }}
               transition={{ duration: 42, repeat: Infinity, repeatType: 'loop', ease: 'linear' }}
             >
               {leftColumnPhotos.map((src, i) => (
@@ -208,7 +209,7 @@ export const Highlights = () => {
           <div className="relative h-full overflow-hidden rounded-[20px]">
             <motion.div
               className="flex flex-col gap-5"
-              animate={{ y: [-50 * middleColumnPhotos.length, 0] }}
+              animate={{ y: ["-50%", "0%"] }}
               transition={{ duration: 42, repeat: Infinity, repeatType: 'loop', ease: 'linear' }}
             >
               {middleColumnPhotos.map((src, i) => (
@@ -263,7 +264,7 @@ export const Highlights = () => {
           <div className="relative h-full overflow-hidden rounded-[20px]">
             <motion.div
               className="flex flex-col gap-5"
-              animate={{ y: [0, -50 * rightColumnPhotos.length] }}
+              animate={{ y: ["0%", "-50%"] }}
               transition={{ duration: 42, repeat: Infinity, repeatType: 'loop', ease: 'linear' }}
             >
               {rightColumnPhotos.map((src, i) => (

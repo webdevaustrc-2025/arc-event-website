@@ -37,31 +37,50 @@ const icons = [
 
 const filters = ['All', 'Solo', 'Team', 'Autonomous', 'Manual'];
 
+const DUMMY_SEGMENTS: DbSegment[] = [
+  { id: 1, name: 'Robo Soccer', description: 'Build and program autonomous or manual robots to compete in a high-stakes soccer tournament on a custom arena.', type: 'Team', difficulty: 'Hard', teamSize: 'Max 4', fee: '৳500', prizePool: '৳20,000', category: 'Manual', scheduleText: 'Day 1 • 10:00 AM', location: 'Arena A', deadline: 'May 15, 2026', imageUrl: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800&q=80' },
+  { id: 2, name: 'Line Follower', description: 'Optimize your algorithms for the fastest time across complex track layouts with sharp turns and intersections.', type: 'Team', difficulty: 'Medium', teamSize: 'Max 3', fee: '৳400', prizePool: '৳15,000', category: 'Autonomous', scheduleText: 'Day 1 • 2:00 PM', location: 'Track B', deadline: 'May 12, 2026', imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80' },
+  { id: 3, name: 'Drone Race', description: 'Navigate aerial obstacles in a high-speed FPV drone racing championship.', type: 'Solo', difficulty: 'Extreme', teamSize: 'Max 1', fee: '৳1000', prizePool: '৳50,000', category: 'Manual', scheduleText: 'Day 2 • 11:00 AM', location: 'Sky Zone', deadline: 'May 10, 2026', imageUrl: 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=800&q=80' },
+  { id: 4, name: 'Sumo Bot', description: 'Push the opponent out of the ring. Pure torque and grip.', type: 'Team', difficulty: 'Hard', teamSize: 'Max 4', fee: '৳600', prizePool: '৳25,000', category: 'Autonomous', scheduleText: 'Day 1 • 4:00 PM', location: 'Ring C', deadline: 'May 14, 2026', imageUrl: 'https://images.unsplash.com/photo-1535378917042-10a22c95931a?w=800&q=80' }
+];
+
 export default function SegmentsPage({ dbSegments }: { dbSegments?: DbSegment[] }) {
   const [activeFilter, setActiveFilter] = useState('All');
 
-  const segments = (dbSegments || []).map((s, index) => ({
-    id: s.id,
-    title: s.name,
-    desc: s.description,
-    type: s.type || 'Team',
-    difficulty: s.difficulty || 'Medium',
-    icon: icons[index % icons.length],
-    team: s.teamSize || 'TBA',
-    fee: s.fee || 'TBA',
-    prize: s.prizePool || 'Not Specified',
-    filter: s.category || 'General',
-    schedule: s.scheduleText || 'TBA',
-    location: s.location || 'TBA',
-    deadline: s.deadline || 'TBA',
-    image: s.imageUrl || '/globe.svg',
-  }));
+  const rawSegments = dbSegments && dbSegments.length > 0 ? dbSegments : DUMMY_SEGMENTS;
+
+  const segments = rawSegments.map((s, index) => {
+    const fallback = DUMMY_SEGMENTS.find(ds => ds.name.toLowerCase() === s.name.toLowerCase());
+    return {
+      id: s.id,
+      title: s.name,
+      desc: s.description,
+      type: s.type || fallback?.type || 'Team',
+      difficulty: s.difficulty || fallback?.difficulty || 'Medium',
+      icon: icons[index % icons.length],
+      team: s.teamSize || fallback?.teamSize || 'TBA',
+      fee: s.fee || fallback?.fee || 'TBA',
+      prize: s.prizePool || fallback?.prizePool || 'Not Specified',
+      filter: s.category || fallback?.category || 'General',
+      schedule: s.scheduleText || fallback?.scheduleText || 'TBA',
+      location: s.location || fallback?.location || 'TBA',
+      deadline: s.deadline || fallback?.deadline || 'TBA',
+      image: s.imageUrl || fallback?.imageUrl || '/globe.svg',
+    };
+  });
 
   const filteredSegments = segments.filter(s => {
-    if (activeFilter === 'All') return true;
-    if (activeFilter === 'Solo' || activeFilter === 'Team') return s.type === activeFilter;
-    if (activeFilter === 'Autonomous' || activeFilter === 'Manual') {
-      return String(s.filter).toLowerCase().includes(activeFilter.toLowerCase());
+    const filterLower = activeFilter.toLowerCase();
+    if (filterLower === 'all') return true;
+    
+    const typeLower = String(s.type).toLowerCase();
+    const catLower = String(s.filter).toLowerCase();
+
+    if (filterLower === 'solo' || filterLower === 'team') {
+      return typeLower.includes(filterLower);
+    }
+    if (filterLower === 'autonomous' || filterLower === 'manual') {
+      return catLower.includes(filterLower);
     }
     return true;
   });

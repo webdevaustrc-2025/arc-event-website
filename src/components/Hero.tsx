@@ -9,6 +9,7 @@ import {
   HeartHandshake,
 } from "lucide-react";
 import { ShineButton } from "./ShineButton";
+import { Link } from "@/lib/router-compat";
 
 export const Hero = () => {
   const [timeLeft, setTimeLeft] = useState({
@@ -153,9 +154,11 @@ export const Hero = () => {
             transition={{ delay: 0.3 }}
             className="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto"
           >
-            <ShineButton>
-              Explore Segments →
-            </ShineButton>
+            <Link to="/segments" className="w-full sm:w-auto flex">
+              <ShineButton>
+                Explore Segments →
+              </ShineButton>
+            </Link>
             <button className="relative inline-block p-px font-semibold leading-6 text-white shadow-2xl cursor-pointer rounded-full transition-transform duration-300 ease-in-out hover:scale-105 active:scale-95 group min-h-[52px]">
               <span
                 className="absolute inset-0 rounded-full p-[2px] opacity-0 transition-opacity duration-500 group-hover:opacity-100"

@@ -5,7 +5,7 @@ import { Link } from '@/lib/router-compat';
 import { Download } from 'lucide-react';
 import { motion } from 'motion/react';
 
-export default function SponsorsPage() {
+export default function SponsorsPage({ dbSponsors }: { dbSponsors?: any }) {
   return (
     <div className="pt-32 pb-24 min-h-screen">
       <div className="max-w-7xl mx-auto px-6 mb-16 text-center">
@@ -20,7 +20,7 @@ export default function SponsorsPage() {
         </p>
       </div>
 
-      <Sponsors />
+      <Sponsors dbSponsors={dbSponsors} />
 
       {/* Become a Sponsor CTA */}
       <section className="py-32 px-6 max-w-7xl mx-auto mt-24 border-t border-white/5 relative overflow-hidden">

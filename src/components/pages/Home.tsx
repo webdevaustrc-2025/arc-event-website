@@ -10,19 +10,29 @@ import { Testimonials } from '@/components/Testimonials';
 import { CTABanner } from '@/components/CTABanner';
 import { FAQ } from '@/components/FAQ';
 
-export default function Home() {
+export default function Home({
+  dbSegments,
+  dbSponsors,
+  dbFAQs,
+  dbPhotos,
+}: {
+  dbSegments?: any[];
+  dbSponsors?: any;
+  dbFAQs?: any[];
+  dbPhotos?: string[];
+}) {
   return (
     <>
       <Hero />
       <Ticker />
-      <Segments />
+      <Segments dbSegments={dbSegments} />
       <About />
       <PrizePool />
-      <Sponsors />
-      <Highlights />
+      <Sponsors dbSponsors={dbSponsors} />
+      <Highlights dbPhotos={dbPhotos} />
       <Testimonials />
       <CTABanner />
-      <FAQ />
+      <FAQ dbFAQs={dbFAQs} />
     </>
   );
 }

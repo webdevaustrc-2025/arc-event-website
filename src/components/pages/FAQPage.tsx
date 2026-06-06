@@ -5,7 +5,7 @@ import { Link } from '@/lib/router-compat';
 import { MessageCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 
-export default function FAQPage() {
+export default function FAQPage({ dbFAQs }: { dbFAQs?: any[] }) {
   return (
     <div className="pt-32 pb-24 min-h-screen">
       <div className="max-w-4xl mx-auto px-6 mb-16 text-center">
@@ -38,7 +38,7 @@ export default function FAQPage() {
       </div>
 
       <div className="max-w-4xl mx-auto px-6">
-        <FAQ />
+        <FAQ dbFAQs={dbFAQs} />
       </div>
 
       {/* Bottom CTA */}

@@ -115,12 +115,19 @@ const getSponsorIcon = (name: string) => {
   return icons[name] || <Building2 className="w-12 h-12" />;
 };
 
-export function Sponsors() {
+export function Sponsors({ dbSponsors }: { dbSponsors?: GroupedSponsors }) {
   const [sponsors, setSponsors] = useState<GroupedSponsors | null>(null);
   const [loading, setLoading] = useState(true);
   const [usingFallback, setUsingFallback] = useState(false);
 
   useEffect(() => {
+    if (dbSponsors && (dbSponsors.gold?.length > 0 || dbSponsors.silver?.length > 0 || dbSponsors.bronze?.length > 0)) {
+      setSponsors(dbSponsors);
+      setUsingFallback(false);
+      setLoading(false);
+      return;
+    }
+
     async function fetchSponsors() {
       try {
         console.log("Fetching sponsors from API...");
@@ -152,7 +159,7 @@ export function Sponsors() {
     }
 
     fetchSponsors();
-  }, []);
+  }, [dbSponsors]);
 
   if (loading) {
     return (

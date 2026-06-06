@@ -30,8 +30,12 @@ const faqs = [
   }
 ];
 
-export const FAQ = () => {
+export const FAQ = ({ dbFAQs }: { dbFAQs?: any[] }) => {
   const [open, setOpen] = useState<number | null>(0);
+
+  const items = dbFAQs && dbFAQs.length > 0
+    ? dbFAQs.map(f => ({ q: f.question, a: f.answer }))
+    : faqs;
 
   return (
     <section id="faq" className="py-32 relative overflow-hidden">
@@ -160,12 +164,12 @@ export const FAQ = () => {
           />
 
           <div className="p-2">
-            {faqs.map((faq, i) => (
+            {items.map((faq, i) => (
               <div
                 key={i}
                 className="relative overflow-hidden"
                 style={{
-                  borderBottom: i < faqs.length - 1 ? '1px solid rgba(88,160,88,0.08)' : 'none',
+                  borderBottom: i < items.length - 1 ? '1px solid rgba(88,160,88,0.08)' : 'none',
                 }}
               >
                 {/* Active item highlight */}
