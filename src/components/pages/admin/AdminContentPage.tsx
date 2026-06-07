@@ -45,11 +45,20 @@ interface Sponsor {
   displayOrder: number;
 }
 
+
+
 interface SponsorForm {
   name: string;
   logoUrl: string;
   tier: Tier;
   websiteUrl: string;
+  displayOrder: number;
+}
+
+interface FAQ {
+  id: number;
+  question: string;
+  answer: string;
   displayOrder: number;
 }
 
@@ -136,6 +145,18 @@ export default function AdminContentPage() {
 
   const [activeTab, setActiveTab] = useState("faq");
 
+const [faqs, setFaqs] = useState<FAQ[]>([]);
+const [faqLoading, setFaqLoading] = useState(false);
+
+const [faqDialogOpen, setFaqDialogOpen] = useState(false);
+const [faqEditTarget, setFaqEditTarget] = useState<FAQ | null>(null);
+
+const [faqForm, setFaqForm] = useState({
+  question: "",
+  answer: "",
+  displayOrder: 0,
+});
+
   // ── Sponsor state ─────────────────────────────────────────────────────────
 
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
@@ -173,10 +194,28 @@ export default function AdminContentPage() {
     }
   }, []);
 
-  useEffect(() => {
-    if (activeTab === "sponsors") fetchSponsors();
-  }, [activeTab, fetchSponsors]);
+  const fetchFaqs = useCallback(async () => {
+  setFaqLoading(true);
 
+  try {
+    const data: FAQ[] = await adminFetch("/api/admin/faqs");
+    setFaqs(data);
+  } catch {
+    toast.error("Failed to load FAQs");
+  } finally {
+    setFaqLoading(false);
+  }
+}, []);
+
+  useEffect(() => {
+  if (activeTab === "sponsors") {
+    fetchSponsors();
+  }
+
+  if (activeTab === "faq") {
+    fetchFaqs();
+  }
+}, [activeTab, fetchSponsors, fetchFaqs]);
   // ── Dialog handlers ───────────────────────────────────────────────────────
 
   function openCreate() {
@@ -261,7 +300,52 @@ export default function AdminContentPage() {
       setDeleting(false);
     }
   }
+async function handleFaqDelete(id: number) {
+  try {
+    await adminFetch(`/api/admin/faqs/${id}`, {
+      method: "DELETE",
+    });
 
+    toast.success("FAQ deleted.");
+
+    fetchFaqs();
+  } catch {
+    toast.error("Failed to delete FAQ");
+  }
+}
+
+async function handleFaqCreate() {
+  await adminFetch("/api/admin/faqs", {
+    method: "POST",
+    body: JSON.stringify(faqForm),
+  });
+
+  toast.success("FAQ created");
+  setFaqDialogOpen(false);
+  fetchFaqs();
+}
+
+async function handleFaqEdit() {
+  if (!faqEditTarget) return;
+
+  await adminFetch(`/api/admin/faqs/${faqEditTarget.id}`, {
+    method: "PUT",
+    body: JSON.stringify(faqForm),
+  });
+
+  toast.success("FAQ updated");
+  setFaqDialogOpen(false);
+  setFaqEditTarget(null);
+  fetchFaqs();
+}
+
+async function handleFaqSubmit() {
+  if (faqEditTarget) {
+    await handleFaqEdit();
+  } else {
+    await handleFaqCreate();
+  }
+}
   // ── Tabs ──────────────────────────────────────────────────────────────────
 
   const tabs = [
@@ -292,9 +376,21 @@ export default function AdminContentPage() {
           </p>
         </div>
         <button
-          onClick={
-            activeTab === "sponsors" && !usingFallback ? openCreate : undefined
-          }
+          onClick={() => {
+  if (activeTab === "sponsors" && !usingFallback) {
+    openCreate();
+  }
+
+  if (activeTab === "faq") {
+    setFaqEditTarget(null);
+    setFaqForm({
+      question: "",
+      answer: "",
+      displayOrder: 0,
+    });
+    setFaqDialogOpen(true);
+  }
+}}
           className="px-4 py-2 rounded-lg font-semibold transition-all shadow-[0_2px_12px_rgba(0,0,0,0.15)] flex items-center gap-2 bg-[#3a5a40] text-white hover:bg-[#344e41]"
         >
           <Plus className="w-4 h-4" />
@@ -342,22 +438,14 @@ export default function AdminContentPage() {
               </button>
             </div>
             <div className="space-y-4">
-              {faqData.map((faq) => (
+          {faqs.map((faq) => (
                 <div
                   key={faq.id}
                   className={`p-5 rounded-xl border transition-all hover:border-gray-400 group flex items-start justify-between gap-4 ${itemBg}`}
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <span
-                        className={`px-2 py-0.5 rounded-md text-xs font-medium border ${
-                          isDark
-                            ? "bg-white/5 text-gray-300 border-white/10"
-                            : "bg-gray-200 text-gray-700 border-gray-300"
-                        }`}
-                      >
-                        {faq.category}
-                      </span>
+                      
                       <h4 className={`font-semibold text-lg ${textColor}`}>
                         {faq.question}
                       </h4>
@@ -365,24 +453,39 @@ export default function AdminContentPage() {
                     <p className={`${mutedText} text-sm`}>{faq.answer}</p>
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    
                     <button
-                      className={`p-2 rounded-lg transition-colors ${
-                        isDark
-                          ? "hover:bg-white/10 text-gray-300"
-                          : "hover:bg-gray-200 text-gray-600"
-                      }`}
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
+  onClick={() => {
+    setFaqEditTarget(faq);
+
+    setFaqForm({
+      question: faq.question,
+      answer: faq.answer,
+      displayOrder: faq.displayOrder,
+    });
+
+    setFaqDialogOpen(true);
+  }}
+  className={`p-2 rounded-lg transition-colors ${
+    isDark
+      ? "hover:bg-white/10 text-gray-300"
+      : "hover:bg-gray-200 text-gray-600"
+  }`}
+
+  
+>
+   <Edit2 className="w-4 h-4" />
+</button>
                     <button
-                      className={`p-2 rounded-lg transition-colors ${
-                        isDark
-                          ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
-                          : "bg-red-50 hover:bg-red-100 text-red-600"
-                      }`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+  onClick={() => handleFaqDelete(faq.id)}
+  className={`p-2 rounded-lg transition-colors ${
+    isDark
+      ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
+      : "bg-red-50 hover:bg-red-100 text-red-600"
+  }`}
+>
+  <Trash2 className="w-4 h-4" />
+</button>
                   </div>
                 </div>
               ))}
@@ -704,6 +807,67 @@ export default function AdminContentPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+<Dialog open={faqDialogOpen} onOpenChange={setFaqDialogOpen}>
+  <DialogContent
+    className={
+      isDark
+        ? "bg-[#111116] border-white/10 text-white"
+        : "bg-white text-gray-900"
+    }
+  >
+    <DialogHeader>
+      <DialogTitle className={textColor}>
+        {faqEditTarget ? "Edit FAQ" : "Add FAQ"}
+      </DialogTitle>
+    </DialogHeader>
+
+    <div className="space-y-3 py-2">
+      <input
+        value={faqForm.question}
+        onChange={(e) =>
+          setFaqForm({ ...faqForm, question: e.target.value })
+        }
+        placeholder="Question"
+        className={`w-full px-3 py-2 border rounded ${inputClass}`}
+      />
+
+      <textarea
+        value={faqForm.answer}
+        onChange={(e) =>
+          setFaqForm({ ...faqForm, answer: e.target.value })
+        }
+        placeholder="Answer"
+        className={`w-full px-3 py-2 border rounded ${inputClass}`}
+      />
+
+      <input
+        type="number"
+        value={faqForm.displayOrder}
+        onChange={(e) =>
+          setFaqForm({
+            ...faqForm,
+            displayOrder: Number(e.target.value),
+          })
+        }
+        className={`w-full px-3 py-2 border rounded ${inputClass}`}
+        placeholder="Display Order"
+      />
+    </div>
+
+    <DialogFooter>
+      <button onClick={() => setFaqDialogOpen(false)}>
+        Cancel
+      </button>
+
+      <button onClick={handleFaqSubmit}>
+        {faqEditTarget ? "Update FAQ" : "Create FAQ"}
+      </button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
+
 
       {/* ── Delete confirmation ── */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
