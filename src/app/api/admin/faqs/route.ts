@@ -3,18 +3,9 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-// GET all FAQs
+// GET FAQs (Public)
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || session.user.role !== "admin") {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
     const faqs = await prisma.fAQ.findMany({
       orderBy: {
         displayOrder: "asc",
@@ -32,7 +23,7 @@ export async function GET() {
   }
 }
 
-// CREATE FAQ
+// CREATE FAQ (Admin only)
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);

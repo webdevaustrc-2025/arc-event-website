@@ -1,9 +1,10 @@
 "use client";
-import React, { useState } from 'react';
+
+import React, { useState,useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Plus, Minus } from 'lucide-react';
 
-const faqs = [
+const fallbackFaqs = [
   {
     q: "Who is eligible to participate?",
     a: "Any active university student from a recognized institution in Bangladesh can participate. Teams can be formed across different universities, provided all members hold valid student IDs."
@@ -30,12 +31,33 @@ const faqs = [
   }
 ];
 
-export const FAQ = ({ dbFAQs }: { dbFAQs?: any[] }) => {
+export const FAQ = () => {
   const [open, setOpen] = useState<number | null>(0);
+  const [faqs, setFaqs] = useState<any[]>([]);
 
-  const items = dbFAQs && dbFAQs.length > 0
-    ? dbFAQs.map(f => ({ q: f.question, a: f.answer }))
-    : faqs;
+  useEffect(() => {
+    async function loadFaqs() {
+      try {
+        const res = await fetch("/api/admin/faqs");
+        const data = await res.json();
+
+        const dbFaqs = data.map((faq: any) => ({
+          q: faq.question,
+          a: faq.answer,
+        }));
+
+        setFaqs(dbFaqs);
+      } catch (error) {
+        console.error("Failed to load FAQs", error);
+      }
+    }
+
+    loadFaqs();
+  }, []);
+
+  const items = faqs ?? [];
+
+  
 
   return (
     <section id="faq" className="py-32 relative overflow-hidden">
