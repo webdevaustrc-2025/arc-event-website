@@ -14,12 +14,12 @@ model User {
   passwordHash  String?
   role          String         @default("user")
   avatarUrl     String?
-  phone         String?
-  university    String?
-  department    String?
-  studentId     String?
   createdAt     DateTime       @default(now())
   emailVerified DateTime?
+  department    String?
+  phone         String?
+  studentId     String?
+  university    String?
   accounts      Account[]
   certificates  Certificate[]
   leaderboard   Leaderboard[]
@@ -62,26 +62,28 @@ model VerificationToken {
 }
 
 model Segment {
-  id            Int            @id @default(autoincrement())
-  name          String
-  description   String
-  rules         String
-  prizePool     String
-  category      String         @default("General")
-  type          String         @default("Team")
-  difficulty    String         @default("Medium")
-  teamSize      String         @default("TBA")
-  fee           String         @default("TBA")
-  deadline      String         @default("TBA")
-  location      String         @default("TBA")
-  scheduleText  String         @default("TBA")
-  ruleBookUrl   String?
-  highlights    String[]       @default([])
-  status        String         @default("active")
-  imageUrl      String?
-  certificates  Certificate[]
-  registrations Registration[]
-  schedule      Schedule[]
+  id             Int            @id @default(autoincrement())
+  name           String
+  description    String
+  rules          String
+  prizePool      String
+  status         String         @default("active")
+  imageUrl       String?
+  category       String         @default("General")
+  deadline       String         @default("TBA")
+  difficulty     String         @default("Medium")
+  fee            String         @default("TBA")
+  highlights     String[]       @default([])
+  location       String         @default("TBA")
+  ruleBookUrl    String?
+  scheduleText   String         @default("TBA")
+  teamSize       String         @default("TBA")
+  type           String         @default("Team")
+  resultDeclared Boolean        @default(false)
+  certificates   Certificate[]
+  Leaderboard    Leaderboard[]
+  registrations  Registration[]
+  schedule       Schedule[]
 }
 
 model Registration {
@@ -143,11 +145,15 @@ model Certificate {
 }
 
 model Leaderboard {
-  id     Int  @id @default(autoincrement())
-  userId Int
-  points Int
-  rank   Int
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  points    Int
+  rank      Int
+  segmentId Int
+  Segment   Segment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, segmentId])
 }
 
 model Setting {
@@ -174,5 +180,3 @@ model Announcement {
   isNew     Boolean  @default(true)
   createdAt DateTime @default(now())
 }
-
-
