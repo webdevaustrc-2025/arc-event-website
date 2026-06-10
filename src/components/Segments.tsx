@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Trophy, Target, Zap, Cpu, Code, Grid, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from '@/lib/router-compat';
+import { useSession } from 'next-auth/react';
 
 interface SegmentData {
   id: number;
@@ -31,6 +32,8 @@ const DUMMY_SEGMENTS: SegmentData[] = [
 ];
 
 export const Segments = ({ dbSegments }: { dbSegments?: SegmentData[] }) => {
+  const { data: session } = useSession();
+  const [registeredSegmentIds, setRegisteredSegmentIds] = useState<number[]>([]);
   const [segments, setSegments] = useState<SegmentData[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flippedIndex, setFlippedIndex] = useState<number | null>(null);
@@ -39,6 +42,23 @@ export const Segments = ({ dbSegments }: { dbSegments?: SegmentData[] }) => {
     typeof window !== 'undefined' ? window.innerWidth : 1200
   );
   const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    if (session) {
+      fetch('/api/dashboard/summary')
+        .then((res) => {
+          if (res.ok) return res.json();
+          throw new Error('Failed to load registered segments');
+        })
+        .then((data) => {
+          if (data && Array.isArray(data.events)) {
+            const ids = data.events.map((e: any) => e.segmentId).filter(Boolean);
+            setRegisteredSegmentIds(ids);
+          }
+        })
+        .catch((err) => console.error('Error fetching segment registrations:', err));
+    }
+  }, [session]);
 
   useEffect(() => {
     setMounted(true);
@@ -109,11 +129,11 @@ export const Segments = ({ dbSegments }: { dbSegments?: SegmentData[] }) => {
     >
       {/* ── Rich atmospheric background ── */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
-        {/* Deep dark green base */}
+        {/* Deep base background */}
         <div
           className="absolute inset-0"
           style={{
-            background: 'linear-gradient(160deg, #060d0a 0%, #0a110d 30%, #080e0b 60%, #050a07 100%)',
+            background: 'var(--section-gradient-base)',
           }}
         />
 
@@ -206,8 +226,9 @@ export const Segments = ({ dbSegments }: { dbSegments?: SegmentData[] }) => {
             <div className="h-px w-10 bg-[#588157] opacity-70" />
           </div>
           <h2
-            className="font-bold mb-4 text-[#a3b18a]"
+            className="font-bold mb-4"
             style={{
+              color: 'var(--text-heading)',
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: 'clamp(36px, 6vw, 64px)',
               letterSpacing: '-0.02em',
@@ -215,7 +236,7 @@ export const Segments = ({ dbSegments }: { dbSegments?: SegmentData[] }) => {
           >
             Competition Segments
           </h2>
-          <p className="text-[#7a8a72] text-lg max-w-[560px] mx-auto">
+          <p className="text-lg max-w-[560px] mx-auto" style={{ color: 'var(--text-body)' }}>
             Explore diverse tracks crafted to challenge your hardware, software and design skills.
           </p>
         </motion.div>
@@ -232,17 +253,11 @@ export const Segments = ({ dbSegments }: { dbSegments?: SegmentData[] }) => {
           maxWidth: '1160px',
           borderRadius: '28px',
           padding: '40px 24px 48px',
-          background: 'linear-gradient(145deg, rgba(18,32,22,0.55) 0%, rgba(10,18,13,0.45) 50%, rgba(14,26,18,0.50) 100%)',
+          background: 'var(--glass-panel-bg)',
           backdropFilter: 'blur(28px) saturate(160%)',
           WebkitBackdropFilter: 'blur(28px) saturate(160%)',
-          border: '1px solid rgba(120,180,120,0.18)',
-          boxShadow: `
-            0 0 80px rgba(58,130,80,0.12),
-            0 4px 6px rgba(0,0,0,0.3),
-            0 24px 64px rgba(0,0,0,0.5),
-            inset 0 1px 0 rgba(255,255,255,0.10),
-            inset 0 -1px 0 rgba(88,129,87,0.08)
-          `,
+          border: '1px solid var(--glass-panel-border)',
+          boxShadow: 'var(--glass-panel-shadow)',
         }}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
@@ -275,13 +290,14 @@ export const Segments = ({ dbSegments }: { dbSegments?: SegmentData[] }) => {
             setFlippedIndex(null);
           }}
           disabled={segments.length === 0}
-          className="absolute left-4 top-1/2 z-20 w-11 h-11 rounded-full flex items-center justify-center text-[#a3b18a] hover:scale-110 transition-all disabled:opacity-50 disabled:pointer-events-none"
+          className="absolute left-4 top-1/2 z-20 w-11 h-11 rounded-full flex items-center justify-center hover:scale-110 transition-all disabled:opacity-50 disabled:pointer-events-none"
           style={{
             transform: 'translateY(-50%)',
-            background: 'rgba(18,32,22,0.7)',
+            background: 'var(--arrow-bg)',
             backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(88,129,87,0.4)',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
+            border: '1px solid var(--arrow-border)',
+            boxShadow: 'var(--arrow-shadow)',
+            color: 'var(--arrow-text)',
           }}
         >
           <ChevronLeft className="w-5 h-5" />
@@ -295,13 +311,14 @@ export const Segments = ({ dbSegments }: { dbSegments?: SegmentData[] }) => {
             setFlippedIndex(null);
           }}
           disabled={segments.length === 0}
-          className="absolute right-4 top-1/2 z-20 w-11 h-11 rounded-full flex items-center justify-center text-[#a3b18a] hover:scale-110 transition-all disabled:opacity-50 disabled:pointer-events-none"
+          className="absolute right-4 top-1/2 z-20 w-11 h-11 rounded-full flex items-center justify-center hover:scale-110 transition-all disabled:opacity-50 disabled:pointer-events-none"
           style={{
             transform: 'translateY(-50%)',
-            background: 'rgba(18,32,22,0.7)',
+            background: 'var(--arrow-bg)',
             backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(88,129,87,0.4)',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
+            border: '1px solid var(--arrow-border)',
+            boxShadow: 'var(--arrow-shadow)',
+            color: 'var(--arrow-text)',
           }}
         >
           <ChevronRight className="w-5 h-5" />
@@ -379,23 +396,11 @@ export const Segments = ({ dbSegments }: { dbSegments?: SegmentData[] }) => {
                   <motion.div
                     className="absolute inset-0 rounded-[24px] p-6 flex flex-col justify-between"
                     style={{
-                      background: isCenter
-                        ? 'linear-gradient(145deg, rgba(22,42,28,0.65) 0%, rgba(12,22,16,0.55) 50%, rgba(18,34,22,0.60) 100%)'
-                        : 'linear-gradient(145deg, rgba(18,32,22,0.50) 0%, rgba(10,18,13,0.42) 100%)',
+                      background: 'var(--glass-panel-bg)',
                       backdropFilter: isCenter ? 'blur(28px) saturate(200%)' : 'blur(18px) saturate(160%)',
                       WebkitBackdropFilter: isCenter ? 'blur(28px) saturate(200%)' : 'blur(18px) saturate(160%)',
-                      border: isCenter
-                        ? '1px solid rgba(140,200,140,0.22)'
-                        : '1px solid rgba(100,160,100,0.12)',
-                      boxShadow: isCenter
-                        ? `
-                          0 0 50px rgba(58,130,80,0.18),
-                          0 2px 4px rgba(0,0,0,0.2),
-                          0 16px 40px rgba(0,0,0,0.45),
-                          inset 0 1px 0 rgba(255,255,255,0.14),
-                          inset 0 0 30px rgba(88,160,88,0.05)
-                        `
-                        : '0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.07)',
+                      border: '1px solid var(--glass-panel-border)',
+                      boxShadow: 'var(--glass-panel-shadow)',
                       backfaceVisibility: 'hidden',
                       transform: 'rotateY(0deg)',
                     }}
@@ -428,10 +433,10 @@ export const Segments = ({ dbSegments }: { dbSegments?: SegmentData[] }) => {
 
                     {/* Icon Panel */}
                     <div
-                      className="rounded-2xl p-8 flex items-center justify-center text-[#6aaf6a] mb-4"
+                      className="rounded-2xl p-8 flex items-center justify-center text-[#588157] mb-4"
                       style={{
-                        background: 'rgba(88,160,88,0.08)',
-                        border: '1px solid rgba(88,160,88,0.12)',
+                        background: 'var(--border)',
+                        border: '1px solid var(--glass-panel-border)',
                       }}
                     >
                       {ICONS[segment.id % 6] || ICONS[1]}
@@ -439,17 +444,17 @@ export const Segments = ({ dbSegments }: { dbSegments?: SegmentData[] }) => {
 
                     {/* Code Name */}
                     <div className="text-center mb-3">
-                      <span className="text-xs text-[#4a6a4a] font-mono tracking-wider">SEG-{String(segment.id).padStart(2, '0')}</span>
+                      <span className="text-xs font-mono tracking-wider" style={{ color: 'var(--text-muted)' }}>SEG-{String(segment.id).padStart(2, '0')}</span>
                     </div>
 
                     {/* Click to Flip */}
                     {isCenter && (
                       <div className="flex justify-center mb-4">
                         <div
-                          className="px-4 py-1.5 rounded-full text-xs text-[#a3b18a] font-medium"
+                          className="px-4 py-1.5 rounded-full text-xs font-medium"
                           style={{
-                            background: 'rgba(88,129,87,0.12)',
-                            border: '1px solid rgba(163,177,138,0.30)',
+                            background: 'var(--border)',
+                            color: 'var(--text-body)',
                           }}
                         >
                           Click to flip
@@ -460,12 +465,12 @@ export const Segments = ({ dbSegments }: { dbSegments?: SegmentData[] }) => {
                     {/* Segment Name */}
                     <div className="text-center">
                       <h3
-                        className="text-2xl font-bold mb-2 text-[#d4e8c2]"
-                        style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                        className="text-2xl font-bold mb-2"
+                        style={{ color: 'var(--text-heading)', fontFamily: "'Space Grotesk', sans-serif" }}
                       >
                         {segment.name}
                       </h3>
-                      <p className="text-sm text-[#5a7a5a]">{segment.description.substring(0, 50)}...</p>
+                      <p className="text-sm" style={{ color: 'var(--text-body)' }}>{segment.description.substring(0, 50)}...</p>
                     </div>
                   </motion.div>
 
@@ -473,15 +478,11 @@ export const Segments = ({ dbSegments }: { dbSegments?: SegmentData[] }) => {
                   <motion.div
                     className="absolute inset-0 rounded-[24px] p-6"
                     style={{
-                      background: 'linear-gradient(145deg, rgba(22,42,28,0.65) 0%, rgba(12,22,16,0.55) 50%, rgba(18,34,22,0.60) 100%)',
+                      background: 'var(--glass-panel-bg)',
                       backdropFilter: 'blur(28px) saturate(200%)',
                       WebkitBackdropFilter: 'blur(28px) saturate(200%)',
-                      border: '1px solid rgba(140,200,140,0.22)',
-                      boxShadow: `
-                        0 0 50px rgba(58,130,80,0.18),
-                        0 16px 40px rgba(0,0,0,0.45),
-                        inset 0 1px 0 rgba(255,255,255,0.14)
-                      `,
+                      border: '1px solid var(--glass-panel-border)',
+                      boxShadow: 'var(--glass-panel-shadow)',
                       backfaceVisibility: 'hidden',
                       transform: 'rotateY(180deg)',
                     }}
@@ -492,60 +493,72 @@ export const Segments = ({ dbSegments }: { dbSegments?: SegmentData[] }) => {
                       style={{
                         width: '65%',
                         height: '1px',
-                        background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.28), rgba(180,255,180,0.18), transparent)',
+                        background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)',
                       }}
                     />
 
                     <h3
-                      className="text-xl font-bold mb-6 text-center text-[#d4e8c2]"
-                      style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                      className="text-xl font-bold mb-6 text-center"
+                      style={{ color: 'var(--text-heading)', fontFamily: "'Space Grotesk', sans-serif" }}
                     >
                       {segment.name}
                     </h3>
 
                     <div className="space-y-3 mb-6">
                       <div className="flex justify-between text-sm">
-                        <span className="text-[#5a7a5a]">Prize Pool:</span>
-                        <span className="text-[#a3b18a] font-bold">{segment.prizePool}</span>
+                        <span style={{ color: 'var(--text-muted)' }}>Prize Pool:</span>
+                        <span className="font-bold" style={{ color: 'var(--text-heading)' }}>{segment.prizePool}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-[#5a7a5a]">Status:</span>
-                        <span className="text-[#c8ddb0] font-medium capitalize">{segment.status}</span>
+                        <span style={{ color: 'var(--text-muted)' }}>Status:</span>
+                        <span className="font-medium capitalize" style={{ color: 'var(--text-heading)' }}>{segment.status}</span>
                       </div>
                     </div>
 
-                    <div className="h-px mb-4" style={{ background: 'rgba(88,160,88,0.15)' }} />
+                    <div className="h-px mb-4" style={{ background: 'var(--border)' }} />
 
-                    <div className="mb-6">
-                      <p className="text-xs text-[#4a6a4a] uppercase tracking-wider mb-3">Description:</p>
-                      <p className="text-xs text-[#6a8a6a] leading-relaxed">{segment.description}</p>
+                    <div className="mb-4 text-left">
+                      <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-body)' }}>Description:</p>
+                      <p className="text-xs leading-relaxed" style={{ color: 'var(--text-body)' }}>{segment.description}</p>
                     </div>
 
-                    <div className="mb-4">
-                      <p className="text-xs text-[#4a6a4a] uppercase tracking-wider mb-2">Rules & Requirements:</p>
-                      <p className="text-xs text-[#6a8a6a] leading-relaxed">{segment.rules || 'No rules specified'}</p>
+                    <div className="mb-4 text-left">
+                      <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--text-body)' }}>Rules & Requirements:</p>
+                      <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>{segment.rules || 'No rules specified'}</p>
                     </div>
 
-                    <div className="space-y-2 mt-auto">
-                      <button
-                        className="w-full py-2 rounded-full text-sm text-[#a3b18a] hover:text-white transition-colors"
+                    <div className="space-y-2 mt-auto" onClick={(e) => e.stopPropagation()}>
+                      <Link
+                        to={`/event/${segment.id}`}
+                        className="w-full py-2 rounded-full text-sm font-semibold transition-colors text-center block"
                         style={{
-                          background: 'rgba(88,129,87,0.10)',
-                          border: '1px solid rgba(120,180,120,0.25)',
+                          background: 'var(--border)',
+                          color: 'var(--text-body)',
+                          border: '1px solid var(--glass-panel-border)',
                         }}
                       >
                         View Details
-                      </button>
-                      <button
-                        className="w-full py-2 rounded-full text-white text-sm font-semibold transition-all hover:brightness-110"
-                        style={{
-                          background: 'linear-gradient(135deg, rgba(58,90,64,0.9) 0%, rgba(88,129,87,0.85) 100%)',
-                          border: '1px solid rgba(140,200,140,0.30)',
-                          boxShadow: '0 4px 16px rgba(58,130,80,0.25), inset 0 1px 0 rgba(255,255,255,0.10)',
-                        }}
-                      >
-                        Register Now
-                      </button>
+                      </Link>
+                      {registeredSegmentIds.includes(segment.id) ? (
+                        <button
+                          disabled
+                          className="w-full py-2 rounded-full text-sm font-semibold cursor-not-allowed opacity-60 text-center block"
+                          style={{
+                            background: 'var(--border)',
+                            color: 'var(--text-muted)',
+                            border: '1px solid var(--glass-panel-border)',
+                          }}
+                        >
+                          Already Registered
+                        </button>
+                      ) : (
+                        <Link
+                          to="/register"
+                          className="w-full py-2 rounded-full text-white text-sm font-semibold transition-all hover:brightness-110 text-center block bg-[#3a5a40] hover:bg-[#344e41] shadow-md"
+                        >
+                          Register Now
+                        </Link>
+                      )}
                     </div>
                   </motion.div>
                 </div>
@@ -589,12 +602,12 @@ export const Segments = ({ dbSegments }: { dbSegments?: SegmentData[] }) => {
           to="/segments"
           className="px-8 py-4 rounded-full font-bold transition-all hover:scale-105 hover:brightness-110"
           style={{
-            background: 'linear-gradient(135deg, rgba(22,42,28,0.70) 0%, rgba(18,34,22,0.60) 100%)',
+            background: 'var(--primary)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(140,200,140,0.22)',
-            color: '#a3b18a',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.3), 0 0 20px rgba(58,130,80,0.10), inset 0 1px 0 rgba(255,255,255,0.10)',
+            border: '1px solid var(--glass-panel-border)',
+            color: 'var(--primary-foreground)',
+            boxShadow: 'var(--glass-panel-shadow)',
           }}
         >
           Explore the Segments

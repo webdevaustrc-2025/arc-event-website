@@ -46,7 +46,21 @@ export const Testimonials = () => {
         <div
           className="absolute inset-0"
           style={{
-            background: 'linear-gradient(180deg, #080f0c 0%, #0a1510 35%, #090f0c 70%, #070d0a 100%)',
+            background: 'var(--section-gradient-base)',
+          }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            backdropFilter: 'blur(10px) saturate(135%)',
+            WebkitBackdropFilter: 'blur(10px) saturate(135%)',
+            background: 'var(--section-backdrop)',
+          }}
+        />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'var(--section-haze)',
           }}
         />
         {/* Center radial glow */}
@@ -101,12 +115,12 @@ export const Testimonials = () => {
             <div className="h-px w-8" style={{ background: 'rgba(88,129,87,0.45)' }} />
           </div>
           <h2
-            className="font-bold text-[#d4e8c2]"
-            style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 'clamp(28px, 5vw, 58px)' }}
+            className="font-bold"
+            style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 'clamp(28px, 5vw, 58px)', color: 'var(--text-heading)' }}
           >
             What Participants Say.
           </h2>
-          <p className="mt-3 text-[#3d5a3d] text-base max-w-xl mx-auto">
+          <p className="mt-3 text-base max-w-xl mx-auto" style={{ color: 'var(--text-body)' }}>
             Hear from the champions, builders, and innovators who have stood in the arena.
           </p>
         </motion.div>
@@ -117,11 +131,11 @@ export const Testimonials = () => {
         {/* Edge masks */}
         <div
           className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none"
-          style={{ background: 'linear-gradient(90deg, rgba(8,14,10,0.95), transparent)' }}
+          style={{ background: 'linear-gradient(90deg, var(--background), transparent)' }}
         />
         <div
           className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none"
-          style={{ background: 'linear-gradient(-90deg, rgba(8,14,10,0.95), transparent)' }}
+          style={{ background: 'linear-gradient(-90deg, var(--background), transparent)' }}
         />
 
         <motion.div
@@ -134,15 +148,11 @@ export const Testimonials = () => {
               key={`${test.id}-${index}`}
               className="flex-shrink-0 w-[400px] h-[260px] rounded-[22px] p-7 flex flex-col justify-between group cursor-default relative overflow-hidden"
               style={{
-                background: 'linear-gradient(145deg, rgba(16,28,20,0.65) 0%, rgba(9,16,12,0.55) 50%, rgba(13,22,16,0.60) 100%)',
+                background: 'var(--glass-panel-bg)',
                 backdropFilter: 'blur(22px) saturate(170%)',
                 WebkitBackdropFilter: 'blur(22px) saturate(170%)',
-                border: '1px solid rgba(100,160,100,0.16)',
-                boxShadow: `
-                  0 8px 36px rgba(0,0,0,0.40),
-                  inset 0 1px 0 rgba(255,255,255,0.10),
-                  inset 0 0 24px rgba(58,130,80,0.03)
-                `,
+                border: '1px solid var(--glass-panel-border)',
+                boxShadow: 'var(--glass-panel-shadow)',
               }}
             >
               {/* Top inner highlight */}
@@ -167,12 +177,13 @@ export const Testimonials = () => {
               />
 
               <p
-                className="text-[#8aaa8a] leading-relaxed text-[14px] relative z-10"
+                className="leading-relaxed text-[14px] relative z-10"
                 style={{
                   display: '-webkit-box',
                   WebkitLineClamp: 4,
                   WebkitBoxOrient: 'vertical',
                   overflow: 'hidden',
+                  color: 'var(--text-body)',
                 }}
               >
                 "{test.quote}"
@@ -180,26 +191,27 @@ export const Testimonials = () => {
 
               <div
                 className="relative z-10 pt-4"
-                style={{ borderTop: '1px solid rgba(88,160,88,0.10)' }}
+                style={{ borderTop: '1px solid var(--border)' }}
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-[14px] text-[#a3b18a] flex-shrink-0"
+                    className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-[14px] flex-shrink-0"
                     style={{
-                      background: 'linear-gradient(135deg, rgba(32,60,38,0.80), rgba(58,90,64,0.70))',
-                      border: '1px solid rgba(140,200,140,0.22)',
+                      background: 'var(--border)',
+                      border: '1px solid var(--glass-panel-border)',
+                      color: 'var(--text-heading)',
                     }}
                   >
                     {test.name.charAt(0)}
                   </div>
                   <div>
                     <h4
-                      className="font-bold text-[#c8ddb0] text-[14px]"
-                      style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                      className="font-bold text-[14px]"
+                      style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text-heading)' }}
                     >
                       {test.name}
                     </h4>
-                    <span className="text-[10px] text-[#4a7a4a] uppercase tracking-[0.10em] font-medium">{test.team}</span>
+                    <span className="text-[10px] uppercase tracking-[0.10em] font-medium" style={{ color: 'var(--text-muted)' }}>{test.team}</span>
                   </div>
                 </div>
               </div>

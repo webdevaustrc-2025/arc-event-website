@@ -61,32 +61,29 @@ export const FAQ = () => {
 
   return (
     <section id="faq" className="py-32 relative overflow-hidden">
-      {/* ── Technical precision atmosphere — minimal, clean ── */}
+      {/* ── Technical precision atmosphere ── */}
       <div className="absolute inset-0 -z-10">
         <div
           className="absolute inset-0"
           style={{
-            background: 'linear-gradient(180deg, #070c09 0%, #0a1210 40%, #080d0b 100%)',
+            background: 'var(--section-gradient-base)',
           }}
         />
 
-        {/* ── FULL-WIDTH BACKDROP BLUR — clean precise frosted layer ── */}
+        {/* ── FULL-WIDTH BACKDROP BLUR ── */}
         <div
           className="absolute inset-0"
           style={{
             backdropFilter: 'blur(8px) saturate(120%)',
             WebkitBackdropFilter: 'blur(8px) saturate(120%)',
-            background: 'rgba(7,12,9,0.28)',
+            background: 'var(--section-backdrop)',
           }}
         />
         {/* Clean vertical-axis haze — minimal and precise */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: `
-              radial-gradient(ellipse 70% 90% at 50% 50%, rgba(45,100,55,0.10) 0%, transparent 62%),
-              linear-gradient(180deg, rgba(6,11,8,0.18) 0%, rgba(9,16,11,0.10) 50%, rgba(6,11,8,0.18) 100%)
-            `,
+            background: 'var(--section-haze)',
           }}
         />
 
@@ -147,8 +144,8 @@ export const FAQ = () => {
             <div className="h-px w-8" style={{ background: 'rgba(88,129,87,0.45)' }} />
           </div>
           <h2
-            className="text-4xl md:text-5xl font-bold text-[#d4e8c2]"
-            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            className="text-4xl md:text-5xl font-bold"
+            style={{ color: 'var(--text-heading)', fontFamily: "'Space Grotesk', sans-serif" }}
           >
             Common Questions
           </h2>
@@ -161,11 +158,11 @@ export const FAQ = () => {
           viewport={{ once: true }}
           className="relative rounded-[24px] overflow-hidden"
           style={{
-            background: 'linear-gradient(145deg, rgba(12,22,15,0.60) 0%, rgba(7,14,10,0.50) 100%)',
+            background: 'var(--glass-panel-bg)',
             backdropFilter: 'blur(18px) saturate(140%)',
             WebkitBackdropFilter: 'blur(18px) saturate(140%)',
-            border: '1px solid rgba(88,160,88,0.14)',
-            boxShadow: '0 8px 48px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.08)',
+            border: '1px solid var(--glass-panel-border)',
+            boxShadow: 'var(--glass-panel-shadow)',
           }}
         >
           {/* Top inner highlight */}
@@ -191,7 +188,7 @@ export const FAQ = () => {
                 key={i}
                 className="relative overflow-hidden"
                 style={{
-                  borderBottom: i < items.length - 1 ? '1px solid rgba(88,160,88,0.08)' : 'none',
+                  borderBottom: i < items.length - 1 ? '1px solid var(--border)' : 'none',
                 }}
               >
                 {/* Active item highlight */}
@@ -200,8 +197,8 @@ export const FAQ = () => {
                     layoutId="faq-active"
                     className="absolute inset-0 rounded-[16px] pointer-events-none"
                     style={{
-                      background: 'rgba(22,42,26,0.45)',
-                      border: '1px solid rgba(88,160,88,0.12)',
+                      background: 'var(--faq-active-bg)',
+                      border: '1px solid var(--faq-active-border)',
                     }}
                     transition={{ duration: 0.25 }}
                   />
@@ -211,7 +208,7 @@ export const FAQ = () => {
                   onClick={() => setOpen(open === i ? null : i)}
                   className="relative z-10 w-full flex items-center justify-between text-left group py-5 px-5"
                 >
-                  {/* Left neon dot for active */}
+                  {/* Left dot for active */}
                   <span
                     className="mr-3 w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all duration-300"
                     style={{
@@ -221,16 +218,16 @@ export const FAQ = () => {
                   />
                   <h3
                     className="flex-1 text-[15px] md:text-[17px] font-medium pr-6 transition-colors duration-200"
-                    style={{ color: open === i ? '#c8ddb0' : '#6a8a6a' }}
+                    style={{ color: open === i ? 'var(--text-heading)' : 'var(--text-body)' }}
                   >
                     {faq.q}
                   </h3>
                   <div
                     className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300"
                     style={{
-                      background: open === i ? 'rgba(88,160,88,0.18)' : 'rgba(14,26,18,0.50)',
-                      border: open === i ? '1px solid rgba(106,175,106,0.40)' : '1px solid rgba(88,160,88,0.12)',
-                      color: open === i ? '#6aaf6a' : '#3d5a3d',
+                      background: open === i ? 'rgba(88,160,88,0.18)' : 'rgba(14,26,18,0.10)',
+                      border: open === i ? '1px solid rgba(106,175,106,0.40)' : '1px solid var(--border)',
+                      color: open === i ? '#6aaf6a' : '#588157',
                       boxShadow: open === i ? '0 0 12px rgba(88,160,88,0.20)' : 'none',
                     }}
                   >
@@ -247,7 +244,7 @@ export const FAQ = () => {
                       transition={{ duration: 0.28, ease: 'easeInOut' }}
                       className="relative z-10"
                     >
-                      <p className="text-[#4a6a4a] leading-relaxed text-[14px] pb-5 px-5 pl-10 pr-14">
+                      <p className="leading-relaxed text-[14px] pb-5 px-5 pl-10 pr-14" style={{ color: 'var(--text-body)' }}>
                         {faq.a}
                       </p>
                     </motion.div>

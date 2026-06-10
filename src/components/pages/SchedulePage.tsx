@@ -108,13 +108,13 @@ export default function SchedulePage({ dbSchedule }: { dbSchedule?: any[] }) {
       <div className="max-w-4xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-16 relative">
-          <div className="text-gray-400 text-sm tracking-widest mb-6">
-            <Link to="/" className="hover:text-white transition-colors">HOME</Link> / SCHEDULE
+          <div className="text-sm tracking-widest mb-6" style={{ color: 'var(--text-muted)' }}>
+            <Link to="/" className="hover:text-[var(--text-heading)] transition-colors">HOME</Link> / SCHEDULE
           </div>
           <h1 className="text-5xl md:text-7xl font-bold mb-6 relative z-10" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
             Event Timeline.
           </h1>
-          <p className="text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed">
+          <p className="max-w-2xl mx-auto text-lg leading-relaxed" style={{ color: 'var(--text-body)' }}>
             Plan your visit. {days.length || '3'} days of non-stop robotics action, engineering battles, and innovation showcases.
           </p>
         </div>
@@ -122,13 +122,13 @@ export default function SchedulePage({ dbSchedule }: { dbSchedule?: any[] }) {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <Loader2 className="w-10 h-10 animate-spin text-[#588157]" />
-            <p className="text-gray-400">Loading timeline...</p>
+            <p style={{ color: 'var(--text-muted)' }}>Loading timeline...</p>
           </div>
         ) : events.length === 0 ? (
-          <div className="p-12 text-center rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-sm">
+          <div className="p-12 text-center rounded-2xl border" style={{ background: 'var(--glass-panel-bg)', borderColor: 'var(--glass-panel-border)' }}>
             <Calendar className="w-12 h-12 mx-auto text-gray-500 mb-4 opacity-50" />
-            <h3 className="text-xl font-bold text-white mb-2">Timeline Coming Soon</h3>
-            <p className="text-gray-400">The detailed event schedule has not been published yet. Please check back later!</p>
+            <h3 className="text-xl font-bold mb-2" style={{ color: 'var(--text-heading)' }}>Timeline Coming Soon</h3>
+            <p style={{ color: 'var(--text-body)' }}>The detailed event schedule has not been published yet. Please check back later!</p>
           </div>
         ) : (
           <>
@@ -140,8 +140,8 @@ export default function SchedulePage({ dbSchedule }: { dbSchedule?: any[] }) {
                   onClick={() => setActiveDay(day)}
                   className={`px-8 py-3 rounded-full text-lg font-medium transition-all duration-300 border ${
                     activeDay === day 
-                      ? 'bg-[rgba(88,129,87,0.12)] border-[#588157] text-[#a3b18a]' 
-                      : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
+                      ? 'bg-[#588157]/15 border-[#588157] text-[var(--text-heading)] shadow-md' 
+                      : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-[var(--text-body)] hover:bg-black/10 dark:hover:bg-white/10 hover:text-[var(--text-heading)]'
                   }`}
                 >
                   {day}
@@ -152,7 +152,7 @@ export default function SchedulePage({ dbSchedule }: { dbSchedule?: any[] }) {
             {/* Timeline */}
             <div className="relative pl-6 md:pl-0">
               {/* Vertical Line */}
-              <div className="absolute left-[39px] md:left-1/2 top-0 bottom-0 w-px bg-white/10 -translate-x-1/2" />
+              <div className="absolute left-[39px] md:left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-[var(--border)]" />
 
               <div className="space-y-12 relative z-10">
                 <AnimatePresence mode="wait">
@@ -171,30 +171,37 @@ export default function SchedulePage({ dbSchedule }: { dbSchedule?: any[] }) {
                         <div key={item.id} className={`flex flex-col md:flex-row items-center gap-8 ${i % 2 === 0 ? 'md:flex-row-reverse' : ''}`}>
                           {/* Time (Mobile hidden) */}
                           <div className={`hidden md:block w-1/2 ${i % 2 === 0 ? 'text-left pl-12' : 'text-right pr-12'}`}>
-                            <div className={`text-2xl font-bold ${isCurrent ? 'text-[#a3b18a]' : 'text-white'}`} style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                            <div className="text-2xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif", color: isCurrent ? 'var(--text-label)' : 'var(--text-heading)' }}>
                               {formatTime(item.startTime)}
                             </div>
-                            <div className="text-gray-500 text-sm uppercase tracking-widest mt-1">GMT+6</div>
+                            <div className="text-sm uppercase tracking-widest mt-1" style={{ color: 'var(--text-muted)' }}>GMT+6</div>
                           </div>
 
                           {/* Node */}
-                          <div className={`absolute left-[39px] md:left-1/2 -translate-x-1/2 w-4 h-4 rounded-full border-4 border-[#0A0A0F] ${
-                            isCurrent ? 'bg-[#588157]' : 'bg-gray-600'
-                          }`} />
+                          <div className="absolute left-[39px] md:left-1/2 -translate-x-1/2 w-4 h-4 rounded-full border-4"
+                            style={{
+                              borderColor: 'var(--background)',
+                              backgroundColor: isCurrent ? 'var(--text-label)' : 'gray',
+                            }}
+                          />
 
                           {/* Card */}
                           <div className={`w-full md:w-1/2 ml-16 md:ml-0 ${i % 2 === 0 ? 'md:pr-12' : 'md:pl-12'}`}>
-                            <div className={`p-6 rounded-2xl bg-white/[0.02] border backdrop-blur-sm transition-colors duration-300 ${
-                              isCurrent ? 'border-[#3a5a40] shadow-[0_2px_12px_rgba(0,0,0,0.20)]' : 'border-white/5 hover:border-white/20'
-                            }`}>
+                            <div className="p-6 rounded-2xl backdrop-blur-sm transition-all duration-300 border"
+                              style={{
+                                background: 'var(--glass-panel-bg)',
+                                borderColor: isCurrent ? 'var(--text-label)' : 'var(--glass-panel-border)',
+                                boxShadow: isCurrent ? '0 8px 32px rgba(88,129,87,0.15), var(--glass-panel-shadow)' : 'var(--glass-panel-shadow)',
+                              }}
+                            >
                               {/* Time (Mobile only) */}
-                              <div className="md:hidden text-[#a3b18a] font-bold mb-3 flex items-center gap-2">
+                              <div className="md:hidden font-bold mb-3 flex items-center gap-2" style={{ color: 'var(--text-label)' }}>
                                 <Clock className="w-4 h-4" />
                                 {formatTime(item.startTime)}
                               </div>
 
                               <div className="flex justify-between items-start gap-4 mb-4">
-                                <h3 className="text-xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{item.title}</h3>
+                                <h3 className="text-xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text-heading)' }}>{item.title}</h3>
                                 <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest ${
                                   type === 'Opening' || type === 'Award' ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' :
                                   type === 'Segment' ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20' :
@@ -205,7 +212,7 @@ export default function SchedulePage({ dbSchedule }: { dbSchedule?: any[] }) {
                                 </span>
                               </div>
 
-                              <div className="flex items-center gap-2 text-sm text-gray-400">
+                              <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-body)' }}>
                                 <MapPin className="w-4 h-4" />
                                 {item.venue}
                               </div>

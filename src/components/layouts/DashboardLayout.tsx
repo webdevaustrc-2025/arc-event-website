@@ -50,16 +50,18 @@ export const DashboardLayout = () => {
   return (
     <div className={`min-h-screen ${isDark ? 'bg-[#0A0A0F]' : 'bg-[#f5f5f0]'}`}>
       {/* Top Navbar - Only visible on mobile/tablet */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-[#0A0A0F] border-b border-white/[0.06] z-50 flex items-center px-4">
+      <div className={`lg:hidden fixed top-0 left-0 right-0 h-16 border-b z-50 flex items-center px-4 transition-colors duration-300 ${
+        isDark ? 'bg-[#0A0A0F] border-white/[0.06]' : 'bg-[#ffffff] border-black/[0.06]'
+      }`}>
         <AnimatedMenuButton isOpen={sidebarOpen} onClick={() => setSidebarOpen(!sidebarOpen)} />
         <div className="ml-4">
           <h1
-            className="text-lg font-bold tracking-tight text-white leading-tight"
+            className={`text-lg font-bold tracking-tight leading-tight ${isDark ? 'text-white' : 'text-[#1a1a14]'}`}
             style={{ fontFamily: "'Space Grotesk', sans-serif" }}
           >
             <span className="text-[#588157]">Robo</span>Fest
           </h1>
-          <p className="text-[10px] text-[#5A5A52]">Participant Dashboard</p>
+          <p className={`text-[10px] ${isDark ? 'text-[#5A5A52]' : 'text-[#8a8a7a]'}`}>Participant Dashboard</p>
         </div>
       </div>
 

@@ -27,7 +27,7 @@ export const Highlights = ({ dbPhotos }: { dbPhotos?: string[] }) => {
         <div
           className="absolute inset-0"
           style={{
-            background: 'linear-gradient(180deg, #050a07 0%, #08100c 35%, #060c09 70%, #050a07 100%)',
+            background: 'var(--section-gradient-base)',
           }}
         />
 
@@ -37,18 +37,14 @@ export const Highlights = ({ dbPhotos }: { dbPhotos?: string[] }) => {
           style={{
             backdropFilter: 'blur(12px) saturate(140%)',
             WebkitBackdropFilter: 'blur(12px) saturate(140%)',
-            background: 'rgba(5,10,7,0.32)',
+            background: 'var(--section-backdrop)',
           }}
         />
         {/* Dynamic atmospheric haze — diagonal cinematic sweep */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: `
-              radial-gradient(ellipse 130% 50% at 15% 40%, rgba(40,100,55,0.13) 0%, transparent 55%),
-              radial-gradient(ellipse 90% 60% at 85% 60%, rgba(70,130,60,0.10) 0%, transparent 55%),
-              linear-gradient(135deg, rgba(8,16,11,0.25) 0%, rgba(4,8,6,0.40) 50%, rgba(8,14,10,0.25) 100%)
-            `,
+            background: 'var(--section-haze)',
           }}
         />
 
@@ -110,15 +106,15 @@ export const Highlights = ({ dbPhotos }: { dbPhotos?: string[] }) => {
               <span className="text-[#588157] text-[11px] tracking-[0.18em] font-medium uppercase">/ Gallery</span>
             </div>
             <h2
-              className="font-bold text-[#d4e8c2]"
-              style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 'clamp(28px, 5vw, 58px)' }}
+              className="font-bold"
+              style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 'clamp(28px, 5vw, 58px)', color: 'var(--text-heading)' }}
             >
               Relive ARC 3.0 2024
             </h2>
           </div>
           <a
             href="#"
-            className="text-sm font-medium text-[#588157] hover:text-[#a3b18a] transition-colors flex items-center gap-2 pb-2"
+            className="text-sm font-medium text-[var(--text-label)] hover:text-[var(--text-heading)] transition-colors flex items-center gap-2 pb-2"
           >
             View Full Gallery <ArrowUpRight className="w-4 h-4" />
           </a>

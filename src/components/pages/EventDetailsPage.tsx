@@ -1,8 +1,9 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Link, useNavigate, useParams } from '@/lib/router-compat';
 import { Calendar, MapPin, Clock, Trophy, Medal, ArrowLeft, FileText, Zap, Target, Shield, Award } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 interface DbSegment {
   id: number;
@@ -138,6 +139,26 @@ export default function EventDetailsPage({ dbSegment }: { dbSegment?: DbSegment 
     );
   }
 
+  const { data: session } = useSession();
+  const [isRegistered, setIsRegistered] = useState(false);
+
+  useEffect(() => {
+    if (session && event?.id) {
+      fetch('/api/dashboard/summary')
+        .then((res) => {
+          if (res.ok) return res.json();
+          throw new Error('Failed to load registered segments');
+        })
+        .then((data) => {
+          if (data && Array.isArray(data.events)) {
+            const registered = data.events.some((e: any) => e.segmentId === event.id);
+            setIsRegistered(registered);
+          }
+        })
+        .catch((err) => console.error('Error fetching segment registrations:', err));
+    }
+  }, [session, event?.id]);
+
   return (
     <div className="min-h-screen pt-24 pb-20 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
@@ -146,7 +167,7 @@ export default function EventDetailsPage({ dbSegment }: { dbSegment?: DbSegment 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           onClick={() => navigate('/segments')}
-          className="flex items-center gap-2 text-[#9A9A8E] hover:text-[#a3b18a] transition-colors mb-8 group"
+          className="flex items-center gap-2 transition-colors mb-8 group text-[var(--text-body)] hover:text-[var(--text-heading)]"
         >
           <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
           <span className="font-medium">Back to Segments</span>
@@ -159,9 +180,9 @@ export default function EventDetailsPage({ dbSegment }: { dbSegment?: DbSegment 
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="relative rounded-2xl overflow-hidden group"
+            className="relative rounded-2xl overflow-hidden group border border-[var(--glass-panel-border)]"
             style={{
-              boxShadow: '0 0 40px rgba(88,129,87,0.2), 0 8px 32px rgba(0,0,0,0.3)',
+              boxShadow: 'var(--glass-panel-shadow)',
             }}
           >
             <div
@@ -194,20 +215,20 @@ export default function EventDetailsPage({ dbSegment }: { dbSegment?: DbSegment 
             <span
               className="inline-block px-4 py-2 rounded-full text-xs font-semibold tracking-wider uppercase mb-4 w-fit"
               style={{
-                background: 'rgba(88,129,87,0.2)',
-                border: '1px solid rgba(163,177,138,0.3)',
-                color: '#a3b18a',
+                background: 'var(--border)',
+                border: '1px solid var(--glass-panel-border)',
+                color: 'var(--text-heading)',
               }}
             >
               {event.category}
             </span>
             <h1
-              className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 text-white"
-              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4"
+              style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text-heading)' }}
             >
               {event.title}
             </h1>
-            <p className="text-[#9A9A8E] text-lg leading-relaxed">{event.tagline}</p>
+            <p className="text-lg leading-relaxed" style={{ color: 'var(--text-body)' }}>{event.tagline}</p>
           </motion.div>
         </div>
 
@@ -218,14 +239,14 @@ export default function EventDetailsPage({ dbSegment }: { dbSegment?: DbSegment 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:col-span-1 p-6 rounded-2xl backdrop-blur-md group hover:-translate-y-1 transition-all duration-300"
+            className="lg:col-span-1 p-6 rounded-2xl backdrop-blur-md group hover:-translate-y-1 transition-all duration-300 border"
             style={{
-              background: 'linear-gradient(135deg, rgba(58,90,64,0.08) 0%, rgba(163,177,138,0.04) 100%)',
-              border: '1px solid rgba(163,177,138,0.15)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.03)',
+              background: 'var(--glass-panel-bg)',
+              borderColor: 'var(--glass-panel-border)',
+              boxShadow: 'var(--glass-panel-shadow)',
             }}
           >
-            <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+            <h3 className="text-xl font-bold mb-6 flex items-center gap-2" style={{ color: 'var(--text-heading)' }}>
               <Trophy className="w-5 h-5 text-[#588157]" />
               Prize Pool
             </h3>
@@ -233,18 +254,18 @@ export default function EventDetailsPage({ dbSegment }: { dbSegment?: DbSegment 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Award className="w-5 h-5 text-yellow-400" />
-                  <span className="text-[#9A9A8E] text-sm">Champion</span>
+                  <span className="text-sm" style={{ color: 'var(--text-body)' }}>Champion</span>
                 </div>
-                <span className="text-2xl font-bold text-[#a3b18a]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-amber-600" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                   {event.prizePool.champion}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Medal className="w-5 h-5 text-gray-400" />
-                  <span className="text-[#9A9A8E] text-sm">Runner-up</span>
+                  <span className="text-sm" style={{ color: 'var(--text-body)' }}>Runner-up</span>
                 </div>
-                <span className="text-xl font-bold text-[#9A9A8E]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                <span className="text-xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text-muted)' }}>
                   {event.prizePool.runnerUp}
                 </span>
               </div>
@@ -260,44 +281,44 @@ export default function EventDetailsPage({ dbSegment }: { dbSegment?: DbSegment 
           >
             {/* Schedule Card */}
             <div
-              className="p-5 rounded-xl backdrop-blur-md hover:-translate-y-1 transition-all duration-300 group"
+              className="p-5 rounded-xl backdrop-blur-md hover:-translate-y-1 transition-all duration-300 group border"
               style={{
-                background: 'rgba(88,129,87,0.06)',
-                border: '1px solid rgba(88,129,87,0.2)',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+                background: 'var(--glass-panel-bg)',
+                borderColor: 'var(--glass-panel-border)',
+                boxShadow: 'var(--glass-panel-shadow)',
               }}
             >
               <Calendar className="w-6 h-6 text-[#588157] mb-3 group-hover:scale-110 transition-transform" />
-              <p className="text-xs text-[#5A5A52] uppercase tracking-wider mb-1">Schedule</p>
-              <p className="text-sm font-semibold text-white">{event.schedule}</p>
+              <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>Schedule</p>
+              <p className="text-sm font-semibold" style={{ color: 'var(--text-heading)' }}>{event.schedule}</p>
             </div>
 
             {/* Location Card */}
             <div
-              className="p-5 rounded-xl backdrop-blur-md hover:-translate-y-1 transition-all duration-300 group"
+              className="p-5 rounded-xl backdrop-blur-md hover:-translate-y-1 transition-all duration-300 group border"
               style={{
-                background: 'rgba(163,177,138,0.06)',
-                border: '1px solid rgba(163,177,138,0.2)',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+                background: 'var(--glass-panel-bg)',
+                borderColor: 'var(--glass-panel-border)',
+                boxShadow: 'var(--glass-panel-shadow)',
               }}
             >
-              <MapPin className="w-6 h-6 text-[#a3b18a] mb-3 group-hover:scale-110 transition-transform" />
-              <p className="text-xs text-[#5A5A52] uppercase tracking-wider mb-1">Location</p>
-              <p className="text-sm font-semibold text-white">{event.location}</p>
+              <MapPin className="w-6 h-6 text-[#588157] mb-3 group-hover:scale-110 transition-transform" />
+              <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>Location</p>
+              <p className="text-sm font-semibold" style={{ color: 'var(--text-heading)' }}>{event.location}</p>
             </div>
 
             {/* Deadline Card */}
             <div
-              className="p-5 rounded-xl backdrop-blur-md hover:-translate-y-1 transition-all duration-300 group"
+              className="p-5 rounded-xl backdrop-blur-md hover:-translate-y-1 transition-all duration-300 group border"
               style={{
-                background: 'rgba(58,90,64,0.06)',
-                border: '1px solid rgba(58,90,64,0.25)',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+                background: 'var(--glass-panel-bg)',
+                borderColor: 'var(--glass-panel-border)',
+                boxShadow: 'var(--glass-panel-shadow)',
               }}
             >
-              <Clock className="w-6 h-6 text-[#3a5a40] mb-3 group-hover:scale-110 transition-transform" />
-              <p className="text-xs text-[#5A5A52] uppercase tracking-wider mb-1">Deadline</p>
-              <p className="text-sm font-semibold text-white">{event.deadline}</p>
+              <Clock className="w-6 h-6 text-[#588157] mb-3 group-hover:scale-110 transition-transform" />
+              <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>Deadline</p>
+              <p className="text-sm font-semibold" style={{ color: 'var(--text-heading)' }}>{event.deadline}</p>
             </div>
           </motion.div>
         </div>
@@ -309,29 +330,45 @@ export default function EventDetailsPage({ dbSegment }: { dbSegment?: DbSegment 
           transition={{ delay: 0.4, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           className="flex flex-col sm:flex-row gap-4 mb-12"
         >
-          <Link
-            to="/register"
-            className="flex-1 sm:flex-none px-8 py-4 rounded-xl font-semibold text-center transition-all duration-300 hover:scale-105 shadow-lg group"
-            style={{
-              background: 'linear-gradient(135deg, #3a5a40 0%, #344e41 100%)',
-              border: '1px solid rgba(163,177,138,0.3)',
-              color: '#ffffff',
-              boxShadow: '0 8px 24px rgba(58,90,64,0.4)',
-            }}
-          >
-            <span className="inline-flex items-center gap-2">
-              Register Now
-              <Zap className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </span>
-          </Link>
+          {isRegistered ? (
+            <button
+              disabled
+              className="flex-1 sm:flex-none px-8 py-4 rounded-xl font-semibold text-center cursor-not-allowed opacity-50 border"
+              style={{
+                background: 'var(--border)',
+                borderColor: 'var(--glass-panel-border)',
+                color: 'var(--text-muted)',
+              }}
+            >
+              <span className="inline-flex items-center gap-2">
+                Already Registered
+              </span>
+            </button>
+          ) : (
+            <Link
+              to="/register"
+              className="flex-1 sm:flex-none px-8 py-4 rounded-xl font-semibold text-center transition-all duration-300 hover:scale-105 shadow-lg group"
+              style={{
+                background: 'linear-gradient(135deg, #3a5a40 0%, #344e41 100%)',
+                border: '1px solid rgba(163,177,138,0.3)',
+                color: '#ffffff',
+                boxShadow: '0 8px 24px rgba(58,90,64,0.4)',
+              }}
+            >
+              <span className="inline-flex items-center gap-2">
+                Register Now
+                <Zap className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </span>
+            </Link>
+          )}
           <a
             href={event.ruleBookUrl || undefined}
             aria-disabled={!event.ruleBookUrl}
-            className="flex-1 sm:flex-none px-8 py-4 rounded-xl font-semibold backdrop-blur-md transition-all duration-300 hover:scale-105 group text-center"
+            className="flex-1 sm:flex-none px-8 py-4 rounded-xl font-semibold backdrop-blur-md transition-all duration-300 hover:scale-105 group text-center border"
             style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(163,177,138,0.25)',
-              color: '#a3b18a',
+              background: 'var(--border)',
+              borderColor: 'var(--glass-panel-border)',
+              color: 'var(--text-heading)',
               pointerEvents: event.ruleBookUrl ? 'auto' : 'none',
               opacity: event.ruleBookUrl ? 1 : 0.65,
             }}
@@ -348,17 +385,17 @@ export default function EventDetailsPage({ dbSegment }: { dbSegment?: DbSegment 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="p-8 rounded-2xl backdrop-blur-md mb-12"
+          className="p-8 rounded-2xl backdrop-blur-md mb-12 border"
           style={{
-            background: 'linear-gradient(135deg, rgba(58,90,64,0.06) 0%, rgba(163,177,138,0.03) 100%)',
-            border: '1px solid rgba(163,177,138,0.12)',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.03)',
+            background: 'var(--glass-panel-bg)',
+            borderColor: 'var(--glass-panel-border)',
+            boxShadow: 'var(--glass-panel-shadow)',
           }}
         >
-          <h2 className="text-2xl font-bold text-white mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+          <h2 className="text-2xl font-bold mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text-heading)' }}>
             About This Event
           </h2>
-          <p className="text-[#9A9A8E] leading-relaxed text-base">{event.description}</p>
+          <p className="leading-relaxed text-base" style={{ color: 'var(--text-body)' }}>{event.description}</p>
         </motion.div>
 
         {/* Key Highlights */}
@@ -366,14 +403,14 @@ export default function EventDetailsPage({ dbSegment }: { dbSegment?: DbSegment 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="p-8 rounded-2xl backdrop-blur-md"
+          className="p-8 rounded-2xl backdrop-blur-md border"
           style={{
-            background: 'linear-gradient(135deg, rgba(88,129,87,0.06) 0%, rgba(163,177,138,0.03) 100%)',
-            border: '1px solid rgba(88,129,87,0.2)',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.03)',
+            background: 'var(--glass-panel-bg)',
+            borderColor: 'var(--glass-panel-border)',
+            boxShadow: 'var(--glass-panel-shadow)',
           }}
         >
-          <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2" style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text-heading)' }}>
             <Target className="w-6 h-6 text-[#588157]" />
             Key Highlights
           </h2>
@@ -384,7 +421,8 @@ export default function EventDetailsPage({ dbSegment }: { dbSegment?: DbSegment 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.7 + idx * 0.05 }}
-                className="flex items-start gap-3 text-[#9A9A8E] group"
+                className="flex items-start gap-3 group"
+                style={{ color: 'var(--text-body)' }}
               >
                 <Shield className="w-5 h-5 text-[#588157] mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
                 <span className="leading-relaxed">{highlight}</span>

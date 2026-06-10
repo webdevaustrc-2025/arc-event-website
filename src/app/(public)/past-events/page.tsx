@@ -1,5 +1,6 @@
-import PastEventsPage from "@/components/pages/PastEventsPage";
 import { prisma } from "@/lib/prisma";
+import PastEventsPage from "@/components/pages/PastEventsPage";
+
 
 export default async function Page() {
   let pastEvents: any[] = [];

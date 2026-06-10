@@ -25,6 +25,7 @@ interface SettingsData {
   registration_status: string;
   max_teams: string;
   registration_deadline: string;
+  event_starting_deadline: string;
   min_members_per_team: string;
   max_members_per_team: string;
   enable_leaderboard: string;
@@ -45,6 +46,7 @@ const DEFAULT_SETTINGS: SettingsData = {
   registration_status: 'open',
   max_teams: '500',
   registration_deadline: '2026-06-10',
+  event_starting_deadline: '2026-06-15T09:00',
   min_members_per_team: '1',
   max_members_per_team: '5',
   enable_leaderboard: 'true',
@@ -264,9 +266,9 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-xs font-semibold uppercase tracking-wider mb-2 ${mutedText}`}>Deadline (Date & Time)</label>
+                  <label className={`block text-xs font-semibold uppercase tracking-wider mb-2 ${mutedText}`}>Registration Deadline (Date & Time)</label>
                   <input
                     type="datetime-local"
                     value={settings.registration_deadline ? (settings.registration_deadline.includes('T') ? settings.registration_deadline : `${settings.registration_deadline}T23:59`) : ''}
@@ -274,6 +276,18 @@ export default function AdminSettingsPage() {
                     className={inputStyle}
                   />
                 </div>
+                <div>
+                  <label className={`block text-xs font-semibold uppercase tracking-wider mb-2 ${mutedText}`}>Event Starting Deadline (Date & Time)</label>
+                  <input
+                    type="datetime-local"
+                    value={settings.event_starting_deadline ? (settings.event_starting_deadline.includes('T') ? settings.event_starting_deadline : `${settings.event_starting_deadline}T09:00`) : ''}
+                    onChange={(e) => handleInputChange('event_starting_deadline', e.target.value)}
+                    className={inputStyle}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-xs font-semibold uppercase tracking-wider mb-2 ${mutedText}`}>Min Members/Team</label>
                   <input

@@ -79,9 +79,11 @@ model Segment {
   highlights    String[]       @default([])
   status        String         @default("active")
   imageUrl      String?
-  certificates  Certificate[]
-  registrations Registration[]
-  schedule      Schedule[]
+  certificates   Certificate[]
+  registrations  Registration[]
+  schedule       Schedule[]
+  resultDeclared Boolean        @default(false)
+  leaderboard    Leaderboard[]
 }
 
 model Registration {
@@ -143,11 +145,15 @@ model Certificate {
 }
 
 model Leaderboard {
-  id     Int  @id @default(autoincrement())
-  userId Int
-  points Int
-  rank   Int
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  segmentId Int
+  points    Int
+  rank      Int
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  segment   Segment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, segmentId])
 }
 
 model Setting {

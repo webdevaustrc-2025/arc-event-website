@@ -1,104 +1,104 @@
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
     const body = await request.json();
-    const { teamName, institution, teamLeader, email, phone, members, segment, password } = body;
+    const {
+      teamName,
+      institution,
+      teamLeader,
+      email,
+      phone,
+      members,
+      segment,
+      password,
+    } = body;
 
-    if (!teamName || !institution || !teamLeader || !email || !phone || !segment) {
-      return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
+    // 1. Validate all required registration fields
+    if (
+      !teamName ||
+      !institution ||
+      !teamLeader ||
+      !email ||
+      !phone ||
+      !segment
+    ) {
+      return NextResponse.json(
+        { message: "Missing required registration fields." },
+        { status: 400 },
+      );
     }
 
+    // 2. Validate password (mandatory since we are creating/verifying accounts on the fly)
     if (!password) {
-      return NextResponse.json({ message: "Password is required" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Password is required to secure your account." },
+        { status: 400 },
+      );
     }
 
     if (password.length < 8) {
-      return NextResponse.json({ message: "Password must be at least 8 characters" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Password must be at least 8 characters long." },
+        { status: 400 },
+      );
     }
 
-    // 1. Resolve user ID
-    let userId: number;
+    // 3. Find or Create User Account securely using the provided email
+    let user = await prisma.user.findUnique({
+      where: { email },
+    });
 
-    if (session?.user?.id) {
-      userId = parseInt(session.user.id);
-      if (isNaN(userId)) {
-        return NextResponse.json({ message: "Invalid user ID" }, { status: 400 });
-      }
-
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { id: true, passwordHash: true },
+    if (!user) {
+      // Create a brand new account with a hashed password
+      const hashedPassword = await bcrypt.hash(password, 12);
+      user = await prisma.user.create({
+        data: {
+          email,
+          name: teamLeader,
+          role: "user",
+          university: institution,
+          phone: phone,
+          passwordHash: hashedPassword,
+          avatarUrl:
+            "https://res.cloudinary.com/dxyhzgrul/image/upload/v1780398181/silver-membership-icon-default-avatar-profile-icon-membership-icon-social-media-user-image-vector-illustration_561158-4215_bdeofc.jpg",
+        } as any,
       });
-
-      if (!user) {
-        return NextResponse.json({ message: "User not found" }, { status: 404 });
-      }
-
+    } else {
+      // User already exists. Verify their password to authenticate the registration.
       if (user.passwordHash) {
         const passwordMatch = await bcrypt.compare(password, user.passwordHash);
         if (!passwordMatch) {
-          return NextResponse.json({ message: "Invalid password" }, { status: 400 });
+          return NextResponse.json(
+            { message: "Invalid password for this existing user account." },
+            { status: 400 },
+          );
         }
       } else {
-        const hashedPassword = await bcrypt.hash(password, 12);
-        await prisma.user.update({
-          where: { id: userId },
-          data: { passwordHash: hashedPassword },
-        });
-      }
-    } else {
-      // Find or create user by email
-      let user = await prisma.user.findUnique({
-        where: { email },
-      });
-
-      if (!user) {
-        const hashedPassword = await bcrypt.hash(password, 12);
-        user = await prisma.user.create({
-          data: {
-            email,
-            name: teamLeader,
-            role: "user",
-            university: institution,
-            phone: phone,
-            passwordHash: hashedPassword,
-            avatarUrl:
-              "https://res.cloudinary.com/dxyhzgrul/image/upload/v1780398181/silver-membership-icon-default-avatar-profile-icon-membership-icon-social-media-user-image-vector-illustration_561158-4215_bdeofc.jpg",
-          } as any,
-        });
-      } else if (!user.passwordHash) {
-        // Existing user without a password: set one now.
+        // If an account existed from a different system but had no password, set it now.
         const hashedPassword = await bcrypt.hash(password, 12);
         await prisma.user.update({
           where: { id: user.id },
           data: { passwordHash: hashedPassword },
         });
-      } else {
-        const passwordMatch = await bcrypt.compare(password, user.passwordHash);
-        if (!passwordMatch) {
-          return NextResponse.json({ message: "Invalid email or password" }, { status: 400 });
-        }
       }
-      userId = user.id;
+
+      // Update user details if they were previously empty
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          phone: user.phone || phone,
+          university: user.university || institution,
+        } as any,
+      });
     }
 
-    // 2. Update user's profile details if empty
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        phone: phone,
-        university: institution,
-      } as any,
-    });
+    const userId = user.id;
 
-    // 3. Resolve segment
+    // 4. Resolve the requested competition segment
     let dbSegment = await prisma.segment.findFirst({
       where: {
         name: {
@@ -134,28 +134,35 @@ export async function POST(request: Request) {
     }
 
     if (!dbSegment) {
-      return NextResponse.json({ message: "No active competition segments found" }, { status: 400 });
+      return NextResponse.json(
+        { message: "No active competition segments found in the database." },
+        { status: 400 },
+      );
     }
 
-    // 4. Check if already registered for this segment
-    const existing = await prisma.registration.findFirst({
+    // 5. Prevent duplicate registration for the same segment
+    const existingRegistration = await prisma.registration.findFirst({
       where: {
         userId,
         segmentId: dbSegment.id,
       },
     });
 
-    if (existing) {
-      return NextResponse.json({
-        success: false,
-        message: `You are already registered for ${dbSegment.name} (Team: ${existing.teamName})`,
-      }, { status: 400 });
+    if (existingRegistration) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `This account is already registered for ${dbSegment.name} under Team: "${existingRegistration.teamName}".`,
+        },
+        { status: 400 },
+      );
     }
 
-    // 5. Generate unique QR Token
-    const qrToken = "ARC-" + crypto.randomBytes(6).toString("hex").toUpperCase();
+    // 6. Generate a secure, unique QR Token (Page 17 requirements)
+    const qrToken =
+      "ARC-" + crypto.randomBytes(6).toString("hex").toUpperCase();
 
-    // 6. Create Registration
+    // 7. Save the registration record to Neon
     const registration = await prisma.registration.create({
       data: {
         userId,
@@ -167,23 +174,34 @@ export async function POST(request: Request) {
       },
     });
 
-    // 7. Log recent activity
-    await (prisma as any).activity.create({
-      data: {
-        title: "New registration",
-        desc: `Team "${teamName}" registered for ${dbSegment.name}.`,
-        icon: "Users",
-        color: "text-green-500",
-      },
-    });
+    // 8. Log the activity to the database feed
+    try {
+      await (prisma as any).activity.create({
+        data: {
+          title: "New registration",
+          desc: `Team "${teamName}" registered for ${dbSegment.name}.`,
+          icon: "Users",
+          color: "text-green-500",
+        },
+      });
+    } catch (e) {
+      console.warn("Activity logging skipped:", e);
+    }
 
-    return NextResponse.json({
-      success: true,
-      data: registration,
-      message: "Registration submitted successfully!",
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        success: true,
+        data: registration,
+        message:
+          "Registration submitted successfully! Your account and team details are secured.",
+      },
+      { status: 201 },
+    );
   } catch (error) {
-    console.error("Public registration API error:", error);
-    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
+    console.error("Unified registration API error:", error);
+    return NextResponse.json(
+      { message: "Internal server error. Please try again." },
+      { status: 500 },
+    );
   }
 }

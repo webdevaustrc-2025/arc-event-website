@@ -7,12 +7,12 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 export const About = () => {
   return (
     <section id="about" className="py-28 relative overflow-hidden">
-      {/* ── Unique editorial atmosphere — warmer forest green hue ── */}
+      {/* ── Unique editorial atmosphere ── */}
       <div className="absolute inset-0 -z-10">
         <div
           className="absolute inset-0"
           style={{
-            background: 'linear-gradient(160deg, #070d09 0%, #0c1810 30%, #091209 65%, #070c08 100%)',
+            background: 'var(--section-gradient-base)',
           }}
         />
 
@@ -22,18 +22,14 @@ export const About = () => {
           style={{
             backdropFilter: 'blur(10px) saturate(135%)',
             WebkitBackdropFilter: 'blur(10px) saturate(135%)',
-            background: 'rgba(8,18,12,0.28)',
+            background: 'var(--section-backdrop)',
           }}
         />
         {/* Soft warm emerald haze — full-width atmospheric glow */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: `
-              radial-gradient(ellipse 120% 60% at 20% 50%, rgba(50,110,60,0.14) 0%, transparent 65%),
-              radial-gradient(ellipse 80% 80% at 80% 50%, rgba(80,140,70,0.08) 0%, transparent 60%),
-              linear-gradient(180deg, rgba(10,22,14,0.20) 0%, rgba(6,14,9,0.35) 50%, rgba(10,20,13,0.20) 100%)
-            `,
+            background: 'var(--section-haze)',
           }}
         />
 
@@ -110,17 +106,13 @@ export const About = () => {
           >
             {/* Outer glass frame */}
             <div
-              className="relative rounded-[28px] p-3"
+              className="relative rounded-[28px] p-3 animate-in fade-in duration-500"
               style={{
-                background: 'linear-gradient(145deg, rgba(16,28,18,0.55) 0%, rgba(10,18,12,0.45) 100%)',
+                background: 'var(--glass-panel-bg)',
                 backdropFilter: 'blur(24px) saturate(160%)',
                 WebkitBackdropFilter: 'blur(24px) saturate(160%)',
-                border: '1px solid rgba(120,180,120,0.16)',
-                boxShadow: `
-                  0 0 50px rgba(58,130,80,0.10),
-                  0 20px 60px rgba(0,0,0,0.50),
-                  inset 0 1px 0 rgba(255,255,255,0.10)
-                `,
+                border: '1px solid var(--glass-panel-border)',
+                boxShadow: 'var(--glass-panel-shadow)',
               }}
             >
               {/* Top inner highlight */}
@@ -138,8 +130,8 @@ export const About = () => {
                 className="relative overflow-hidden rounded-[20px] group"
                 style={{ height: 'clamp(260px, 40vw, 520px)' }}
               >
-                {/* Dark gradient for editorial feel */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#060d09]/70 via-transparent to-transparent z-10 opacity-60" />
+                {/* Dark gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-black/50 via-transparent to-transparent z-10 opacity-60" />
                 {/* Glass reflection */}
                 <div
                   className="absolute inset-0 z-20 opacity-20"
@@ -157,11 +149,11 @@ export const About = () => {
                 <div
                   className="absolute bottom-0 left-0 right-0 z-30 p-5"
                   style={{
-                    background: 'linear-gradient(180deg, transparent 0%, rgba(6,14,9,0.85) 100%)',
+                    background: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.4) 100%)',
                     backdropFilter: 'blur(12px)',
                   }}
                 >
-                  <p className="text-[#6a8a6a] text-xs uppercase tracking-[0.14em] font-medium">
+                  <p className="text-white text-xs uppercase tracking-[0.14em] font-medium opacity-80">
                     ARC 3.0 2025 · Bangladesh
                   </p>
                 </div>
@@ -171,20 +163,20 @@ export const About = () => {
               <div
                 className="absolute -bottom-5 -right-5 rounded-2xl px-5 py-3 z-40"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(18,34,22,0.90) 0%, rgba(10,22,14,0.85) 100%)',
+                  background: 'var(--stat-badge-bg)',
                   backdropFilter: 'blur(20px) saturate(180%)',
                   WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                  border: '1px solid rgba(140,200,140,0.22)',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.45), 0 0 20px rgba(58,130,80,0.12), inset 0 1px 0 rgba(255,255,255,0.10)',
+                  border: '1px solid var(--stat-badge-border)',
+                  boxShadow: 'var(--glass-panel-shadow)',
                 }}
               >
-                <p className="text-[#a3b18a] text-[22px] font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>500+</p>
-                <p className="text-[#3d5a3d] text-[11px] uppercase tracking-wide">Engineers</p>
+                <p className="text-[22px] font-bold" style={{ color: 'var(--text-heading)', fontFamily: "'Space Grotesk', sans-serif" }}>500+</p>
+                <p className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--text-body)' }}>Engineers</p>
               </div>
             </div>
           </motion.div>
 
-          {/* ── Right: Content with minimal glass accent ── */}
+          {/* ── Right: Content ── */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -192,13 +184,13 @@ export const About = () => {
             className="flex flex-col justify-center py-6 lg:py-0"
           >
             <h2
-              className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.08] mb-7 text-[#d4e8c2]"
-              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.08] mb-7"
+              style={{ color: 'var(--text-heading)', fontFamily: "'Space Grotesk', sans-serif" }}
             >
               Where Bangladesh's Best Engineers Compete.
             </h2>
 
-            <p className="text-[#4a6a4a] text-lg mb-8 leading-relaxed">
+            <p className="text-lg mb-8 leading-relaxed" style={{ color: 'var(--text-body)' }}>
               ARC 3.0 2025 isn't just an event — it's a proving ground. We bring together the most brilliant minds across universities to solve complex engineering challenges, push the boundaries of autonomous systems, and showcase the future of robotics.
             </p>
 
@@ -211,11 +203,12 @@ export const About = () => {
               ].map(({ label, Icon }) => (
                 <span
                   key={label}
-                  className="px-4 py-1.5 rounded-full text-sm text-[#7a9a7a] flex items-center gap-2"
+                  className="px-4 py-1.5 rounded-full text-sm flex items-center gap-2"
                   style={{
-                    background: 'rgba(16,28,18,0.55)',
-                    border: '1px solid rgba(100,160,100,0.16)',
+                    background: 'var(--glass-panel-bg)',
+                    border: '1px solid var(--glass-panel-border)',
                     backdropFilter: 'blur(12px)',
+                    color: 'var(--text-body)',
                   }}
                 >
                   <Icon className="w-3.5 h-3.5 text-[#588157]" />
@@ -227,21 +220,19 @@ export const About = () => {
             {/* CTA buttons */}
             <div className="flex flex-wrap items-center gap-4">
               <button
-                className="px-8 py-3 rounded-full text-sm font-semibold text-[#c8ddb0] transition-all hover:brightness-110 hover:scale-105"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(32,56,36,0.90) 0%, rgba(58,90,64,0.80) 100%)',
-                  border: '1px solid rgba(140,200,140,0.25)',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)',
-                }}
+                className="px-8 py-3 rounded-full text-sm font-semibold text-white transition-all hover:brightness-110 hover:scale-105 bg-[#3a5a40] hover:bg-[#344e41] shadow-md"
               >
                 Learn More
               </button>
-              <button className="flex items-center gap-3 px-5 py-3 rounded-full text-sm font-medium text-[#4a6a4a] hover:text-[#a3b18a] transition-colors group">
+              <button 
+                className="flex items-center gap-3 px-5 py-3 rounded-full text-sm font-medium transition-colors group"
+                style={{ color: 'var(--text-body)' }}
+              >
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center group-hover:scale-110 transition-all"
                   style={{
-                    border: '1px solid rgba(88,129,87,0.30)',
-                    background: 'rgba(16,28,18,0.50)',
+                    border: '1px solid var(--glass-panel-border)',
+                    background: 'var(--glass-panel-bg)',
                   }}
                 >
                   <Play className="w-3.5 h-3.5 ml-0.5 text-[#588157]" fill="currentColor" />

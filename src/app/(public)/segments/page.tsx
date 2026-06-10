@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import SegmentsPage from "@/components/pages/SegmentsPage";
 import { prisma } from "@/lib/prisma";
 

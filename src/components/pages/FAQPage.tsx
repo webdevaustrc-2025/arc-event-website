@@ -9,13 +9,13 @@ export default function FAQPage({ dbFAQs }: { dbFAQs?: any[] }) {
   return (
     <div className="pt-32 pb-24 min-h-screen">
       <div className="max-w-4xl mx-auto px-6 mb-16 text-center">
-        <div className="text-gray-400 text-sm tracking-widest mb-6">
-          <Link to="/" className="hover:text-white transition-colors">HOME</Link> / FAQ
+        <div className="text-sm tracking-widest mb-6" style={{ color: 'var(--text-body)' }}>
+          <Link to="/" className="hover:text-[var(--text-heading)] transition-colors">HOME</Link> / FAQ
         </div>
-        <h1 className="text-5xl md:text-7xl font-bold mb-6" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+        <h1 className="text-5xl md:text-7xl font-bold mb-6" style={{ color: 'var(--text-heading)', fontFamily: "'Space Grotesk', sans-serif" }}>
           Got Questions?
         </h1>
-        <p className="text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed mb-12">
+        <p className="max-w-2xl mx-auto text-lg leading-relaxed mb-12" style={{ color: 'var(--text-body)' }}>
           Everything you need to know about registering, competing, and winning at ARC 3.0 2025.
         </p>
 
@@ -27,8 +27,8 @@ export default function FAQPage({ dbFAQs }: { dbFAQs?: any[] }) {
             <button
               key={f}
               className={`flex-shrink-0 px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 border min-h-[40px] ${i === 0
-                  ? 'bg-[rgba(88,129,87,0.12)] border-[#588157] text-[#a3b18a]'
-                  : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
+                  ? 'bg-[#588157]/15 border-[#588157] text-[var(--text-heading)] shadow-md'
+                  : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-[var(--text-body)] hover:bg-black/10 dark:hover:bg-white/10'
                 }`}
             >
               {f}
@@ -42,12 +42,12 @@ export default function FAQPage({ dbFAQs }: { dbFAQs?: any[] }) {
       </div>
 
       {/* Bottom CTA */}
-      <section className="py-24 px-6 max-w-4xl mx-auto mt-16 border-t border-white/5 text-center">
-        <h2 className="text-3xl font-bold mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+      <section className="py-24 px-6 max-w-4xl mx-auto mt-16 border-t text-center" style={{ borderColor: 'var(--border)' }}>
+        <h2 className="text-3xl font-bold mb-4" style={{ color: 'var(--text-heading)', fontFamily: "'Space Grotesk', sans-serif" }}>
           Still have questions?
         </h2>
-        <p className="text-gray-400 mb-8">
-          Can't find the answer you're looking for? Our support team is here to help.
+        <p className="mb-8" style={{ color: 'var(--text-body)' }}>
+          Can\'t find the answer you\'re looking for? Our support team is here to help.
         </p>
         <motion.button
           whileHover={{ scale: 1.05 }}

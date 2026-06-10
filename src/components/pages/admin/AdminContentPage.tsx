@@ -11,6 +11,7 @@ import {
   Globe,
   Image as ImageIcon,
   Loader2,
+  Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { adminFetch } from "@/lib/admin-api";
@@ -55,11 +56,37 @@ interface SponsorForm {
   displayOrder: number;
 }
 
-interface FAQ {
+interface Announcement {
   id: number;
-  question: string;
-  answer: string;
-  displayOrder: number;
+  title: string;
+  message: string;
+  icon: string;
+  color: string;
+  isNew: boolean;
+  createdAt: string;
+}
+
+interface AnnouncementForm {
+  title: string;
+  message: string;
+  icon: string;
+  color: string;
+  isNew: boolean;
+}
+
+interface PastEventItem {
+  id: number;
+  name: string;
+  date: string;
+  description: string;
+  imageUrl?: string | null;
+}
+
+interface PastEventForm {
+  name: string;
+  date: string;
+  description: string;
+  imageUrl: string;
 }
 
 // ─── Fallback dummy data (never removed) ──────────────────────────────────────
@@ -109,6 +136,21 @@ const EMPTY_FORM: SponsorForm = {
   tier: "gold",
   websiteUrl: "",
   displayOrder: 0,
+};
+
+const EMPTY_ANNOUNCEMENT_FORM: AnnouncementForm = {
+  title: "",
+  message: "",
+  icon: "Bell",
+  color: "#588157",
+  isNew: true,
+};
+
+const EMPTY_PAST_EVENT_FORM: PastEventForm = {
+  name: "",
+  date: "",
+  description: "",
+  imageUrl: "",
 };
 
 // ─── Tier styling ─────────────────────────────────────────────────────────────
@@ -172,6 +214,34 @@ const [faqForm, setFaqForm] = useState({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  // ── Announcement state ────────────────────────────────────────────────────
+
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [announcementsLoading, setAnnouncementsLoading] = useState(false);
+
+  const [announcementDialogOpen, setAnnouncementDialogOpen] = useState(false);
+  const [announcementEditTarget, setAnnouncementEditTarget] = useState<Announcement | null>(null);
+  const [announcementForm, setAnnouncementForm] = useState<AnnouncementForm>(EMPTY_ANNOUNCEMENT_FORM);
+  const [announcementSubmitting, setAnnouncementSubmitting] = useState(false);
+
+  const [announcementDeleteTarget, setAnnouncementDeleteTarget] = useState<Announcement | null>(null);
+  const [announcementDeleteOpen, setAnnouncementDeleteOpen] = useState(false);
+  const [announcementDeleting, setAnnouncementDeleting] = useState(false);
+
+  // ── Past Event state ──────────────────────────────────────────────────────
+
+  const [pastEvents, setPastEvents] = useState<PastEventItem[]>([]);
+  const [pastEventsLoading, setPastEventsLoading] = useState(false);
+
+  const [pastEventDialogOpen, setPastEventDialogOpen] = useState(false);
+  const [pastEventEditTarget, setPastEventEditTarget] = useState<PastEventItem | null>(null);
+  const [pastEventForm, setPastEventForm] = useState<PastEventForm>(EMPTY_PAST_EVENT_FORM);
+  const [pastEventSubmitting, setPastEventSubmitting] = useState(false);
+
+  const [pastEventDeleteTarget, setPastEventDeleteTarget] = useState<PastEventItem | null>(null);
+  const [pastEventDeleteOpen, setPastEventDeleteOpen] = useState(false);
+  const [pastEventDeleting, setPastEventDeleting] = useState(false);
+
   // ── Fetch sponsors ────────────────────────────────────────────────────────
 
   const fetchSponsors = useCallback(async () => {
@@ -212,10 +282,44 @@ const [faqForm, setFaqForm] = useState({
     fetchSponsors();
   }
 
-  if (activeTab === "faq") {
-    fetchFaqs();
-  }
-}, [activeTab, fetchSponsors, fetchFaqs]);
+  // ── Fetch announcements ───────────────────────────────────────────────────
+
+  const fetchAnnouncements = useCallback(async () => {
+    setAnnouncementsLoading(true);
+    try {
+      const data: Announcement[] = await adminFetch("/api/admin/announcements");
+      setAnnouncements(Array.isArray(data) ? data : []);
+    } catch {
+      setAnnouncements([]);
+      toast.warning("Could not load announcements.");
+    } finally {
+      setAnnouncementsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "announcements") fetchAnnouncements();
+  }, [activeTab, fetchAnnouncements]);
+
+  // ── Fetch past events ─────────────────────────────────────────────────────
+
+  const fetchPastEvents = useCallback(async () => {
+    setPastEventsLoading(true);
+    try {
+      const data: PastEventItem[] = await adminFetch("/api/admin/past-events");
+      setPastEvents(Array.isArray(data) ? data : []);
+    } catch {
+      setPastEvents([]);
+      toast.warning("Could not load past events.");
+    } finally {
+      setPastEventsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "past-events") fetchPastEvents();
+  }, [activeTab, fetchPastEvents]);
+
   // ── Dialog handlers ───────────────────────────────────────────────────────
 
   function openCreate() {
@@ -234,6 +338,45 @@ const [faqForm, setFaqForm] = useState({
       displayOrder: sponsor.displayOrder,
     });
     setDialogOpen(true);
+  }
+
+  // ── Announcement dialog handlers ──────────────────────────────────────────
+
+  function openCreateAnnouncement() {
+    setAnnouncementEditTarget(null);
+    setAnnouncementForm(EMPTY_ANNOUNCEMENT_FORM);
+    setAnnouncementDialogOpen(true);
+  }
+
+  function openEditAnnouncement(announcement: Announcement) {
+    setAnnouncementEditTarget(announcement);
+    setAnnouncementForm({
+      title: announcement.title,
+      message: announcement.message,
+      icon: announcement.icon,
+      color: announcement.color,
+      isNew: announcement.isNew,
+    });
+    setAnnouncementDialogOpen(true);
+  }
+
+  // ── Past Event dialog handlers ────────────────────────────────────────────
+
+  function openCreatePastEvent() {
+    setPastEventEditTarget(null);
+    setPastEventForm(EMPTY_PAST_EVENT_FORM);
+    setPastEventDialogOpen(true);
+  }
+
+  function openEditPastEvent(event: PastEventItem) {
+    setPastEventEditTarget(event);
+    setPastEventForm({
+      name: event.name,
+      date: event.date ? new Date(event.date).toISOString().split('T')[0] : "",
+      description: event.description,
+      imageUrl: event.imageUrl ?? "",
+    });
+    setPastEventDialogOpen(true);
   }
 
   // ── Submit ────────────────────────────────────────────────────────────────
@@ -339,19 +482,147 @@ async function handleFaqEdit() {
   fetchFaqs();
 }
 
-async function handleFaqSubmit() {
-  if (faqEditTarget) {
-    await handleFaqEdit();
-  } else {
-    await handleFaqCreate();
+  // ── Announcement submit ───────────────────────────────────────────────────
+
+  async function handleAnnouncementSubmit() {
+    if (!announcementForm.title.trim() || !announcementForm.message.trim()) {
+      toast.error("Title and message are required.");
+      return;
+    }
+
+    setAnnouncementSubmitting(true);
+    try {
+      const payload = {
+        ...announcementForm,
+        title: announcementForm.title.trim(),
+        message: announcementForm.message.trim(),
+        icon: announcementForm.icon.trim() || "Bell",
+        color: announcementForm.color || "#588157",
+      };
+
+      if (announcementEditTarget) {
+        await adminFetch(`/api/admin/announcements/${announcementEditTarget.id}`, {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+        toast.success("Announcement updated successfully.");
+      } else {
+        await adminFetch("/api/admin/announcements", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        toast.success("Announcement created successfully.");
+      }
+
+      setAnnouncementDialogOpen(false);
+      fetchAnnouncements();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setAnnouncementSubmitting(false);
+    }
   }
-}
+
+  // ── Announcement delete ───────────────────────────────────────────────────
+
+  function confirmDeleteAnnouncement(announcement: Announcement) {
+    setAnnouncementDeleteTarget(announcement);
+    setAnnouncementDeleteOpen(true);
+  }
+
+  async function handleAnnouncementDelete() {
+    if (!announcementDeleteTarget) return;
+    setAnnouncementDeleting(true);
+    try {
+      await adminFetch(`/api/admin/announcements/${announcementDeleteTarget.id}`, {
+        method: "DELETE",
+      });
+      toast.success("Announcement deleted.");
+      setAnnouncementDeleteOpen(false);
+      fetchAnnouncements();
+    } catch (err: unknown) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to delete announcement."
+      );
+    } finally {
+      setAnnouncementDeleting(false);
+    }
+  }
+
+  // ── Past Event submit ─────────────────────────────────────────────────────
+
+  async function handlePastEventSubmit() {
+    if (!pastEventForm.name.trim() || !pastEventForm.date || !pastEventForm.description.trim()) {
+      toast.error("Name, date, and description are required.");
+      return;
+    }
+
+    setPastEventSubmitting(true);
+    try {
+      const payload = {
+        ...pastEventForm,
+        name: pastEventForm.name.trim(),
+        description: pastEventForm.description.trim(),
+        imageUrl: pastEventForm.imageUrl.trim() || null,
+        date: new Date(pastEventForm.date).toISOString(),
+      };
+
+      if (pastEventEditTarget) {
+        await adminFetch(`/api/admin/past-events/${pastEventEditTarget.id}`, {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+        toast.success("Past event updated successfully.");
+      } else {
+        await adminFetch("/api/admin/past-events", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        toast.success("Past event created successfully.");
+      }
+
+      setPastEventDialogOpen(false);
+      fetchPastEvents();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setPastEventSubmitting(false);
+    }
+  }
+
+  // ── Past Event delete ─────────────────────────────────────────────────────
+
+  function confirmDeletePastEvent(event: PastEventItem) {
+    setPastEventDeleteTarget(event);
+    setPastEventDeleteOpen(true);
+  }
+
+  async function handlePastEventDelete() {
+    if (!pastEventDeleteTarget) return;
+    setPastEventDeleting(true);
+    try {
+      await adminFetch(`/api/admin/past-events/${pastEventDeleteTarget.id}`, {
+        method: "DELETE",
+      });
+      toast.success("Past event deleted.");
+      setPastEventDeleteOpen(false);
+      fetchPastEvents();
+    } catch (err: unknown) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to delete event."
+      );
+    } finally {
+      setPastEventDeleting(false);
+    }
+  }
+
   // ── Tabs ──────────────────────────────────────────────────────────────────
 
   const tabs = [
     { id: "faq", label: "FAQ Manager", icon: HelpCircle },
     { id: "sponsors", label: "Sponsors & Partners", icon: HandHeart },
     { id: "announcements", label: "Announcements", icon: MessageSquare },
+    { id: "past-events", label: "Past Events", icon: Clock },
   ];
 
   // ── Prevent render until mounted (fixes hydration) ────────────────────────
@@ -376,25 +647,19 @@ async function handleFaqSubmit() {
           </p>
         </div>
         <button
-          onClick={() => {
-  if (activeTab === "sponsors" && !usingFallback) {
-    openCreate();
-  }
-
-  if (activeTab === "faq") {
-    setFaqEditTarget(null);
-    setFaqForm({
-      question: "",
-      answer: "",
-      displayOrder: 0,
-    });
-    setFaqDialogOpen(true);
-  }
-}}
+          onClick={
+            activeTab === "sponsors" && !usingFallback ? openCreate :
+              activeTab === "announcements" ? openCreateAnnouncement :
+                activeTab === "past-events" ? openCreatePastEvent :
+                  undefined
+          }
           className="px-4 py-2 rounded-lg font-semibold transition-all shadow-[0_2px_12px_rgba(0,0,0,0.15)] flex items-center gap-2 bg-[#3a5a40] text-white hover:bg-[#344e41]"
         >
           <Plus className="w-4 h-4" />
-          Add Content
+          {activeTab === "sponsors" ? "Add Sponsor" :
+            activeTab === "announcements" ? "Add Announcement" :
+              activeTab === "past-events" ? "Add Past Event" :
+                "Add Content"}
         </button>
       </div>
 
@@ -404,15 +669,14 @@ async function handleFaqSubmit() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${
-              activeTab === tab.id
-                ? isDark
-                  ? "bg-white/10 text-white shadow-sm"
-                  : "bg-gray-100 text-gray-900 shadow-sm"
-                : isDark
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${activeTab === tab.id
+              ? isDark
+                ? "bg-white/10 text-white shadow-sm"
+                : "bg-gray-100 text-gray-900 shadow-sm"
+              : isDark
                 ? "text-gray-400 hover:text-white hover:bg-white/5"
                 : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-            }`}
+              }`}
           >
             <tab.icon className="w-4 h-4" />
             {tab.label}
@@ -445,7 +709,14 @@ async function handleFaqSubmit() {
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      
+                      <span
+                        className={`px-2 py-0.5 rounded-md text-xs font-medium border ${isDark
+                          ? "bg-white/5 text-gray-300 border-white/10"
+                          : "bg-gray-200 text-gray-700 border-gray-300"
+                          }`}
+                      >
+                        {faq.category}
+                      </span>
                       <h4 className={`font-semibold text-lg ${textColor}`}>
                         {faq.question}
                       </h4>
@@ -455,37 +726,21 @@ async function handleFaqSubmit() {
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     
                     <button
-  onClick={() => {
-    setFaqEditTarget(faq);
-
-    setFaqForm({
-      question: faq.question,
-      answer: faq.answer,
-      displayOrder: faq.displayOrder,
-    });
-
-    setFaqDialogOpen(true);
-  }}
-  className={`p-2 rounded-lg transition-colors ${
-    isDark
-      ? "hover:bg-white/10 text-gray-300"
-      : "hover:bg-gray-200 text-gray-600"
-  }`}
-
-  
->
-   <Edit2 className="w-4 h-4" />
-</button>
+                      className={`p-2 rounded-lg transition-colors ${isDark
+                        ? "hover:bg-white/10 text-gray-300"
+                        : "hover:bg-gray-200 text-gray-600"
+                        }`}
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
                     <button
-  onClick={() => handleFaqDelete(faq.id)}
-  className={`p-2 rounded-lg transition-colors ${
-    isDark
-      ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
-      : "bg-red-50 hover:bg-red-100 text-red-600"
-  }`}
->
-  <Trash2 className="w-4 h-4" />
-</button>
+                      className={`p-2 rounded-lg transition-colors ${isDark
+                        ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
+                        : "bg-red-50 hover:bg-red-100 text-red-600"
+                        }`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -530,19 +785,16 @@ async function handleFaqSubmit() {
                     className={`p-5 rounded-xl border animate-pulse ${itemBg}`}
                   >
                     <div
-                      className={`w-20 h-20 rounded-full mx-auto mb-4 ${
-                        isDark ? "bg-white/10" : "bg-gray-200"
-                      }`}
+                      className={`w-20 h-20 rounded-full mx-auto mb-4 ${isDark ? "bg-white/10" : "bg-gray-200"
+                        }`}
                     />
                     <div
-                      className={`h-4 rounded mx-auto w-24 mb-3 ${
-                        isDark ? "bg-white/10" : "bg-gray-200"
-                      }`}
+                      className={`h-4 rounded mx-auto w-24 mb-3 ${isDark ? "bg-white/10" : "bg-gray-200"
+                        }`}
                     />
                     <div
-                      className={`h-3 rounded mx-auto w-16 ${
-                        isDark ? "bg-white/10" : "bg-gray-200"
-                      }`}
+                      className={`h-3 rounded mx-auto w-16 ${isDark ? "bg-white/10" : "bg-gray-200"
+                        }`}
                     />
                   </div>
                 ))}
@@ -559,11 +811,10 @@ async function handleFaqSubmit() {
                   >
                     {/* Logo */}
                     <div
-                      className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 overflow-hidden ${
-                        isDark
-                          ? "bg-white/5 border border-white/10"
-                          : "bg-gray-100 border border-gray-200"
-                      }`}
+                      className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 overflow-hidden ${isDark
+                        ? "bg-white/5 border border-white/10"
+                        : "bg-gray-100 border border-gray-200"
+                        }`}
                     >
                       {sponsor.logoUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -588,18 +839,16 @@ async function handleFaqSubmit() {
                         {sponsor.tier}
                       </span>
                       <span
-                        className={`text-sm font-medium ${
-                          isDark ? "text-gray-300" : "text-gray-600"
-                        }`}
+                        className={`text-sm font-medium ${isDark ? "text-gray-300" : "text-gray-600"
+                          }`}
                       >
                         Order: {sponsor.displayOrder}
                       </span>
                     </div>
 
                     <div
-                      className={`mt-4 pt-4 border-t w-full flex justify-between items-center ${
-                        isDark ? "border-white/10" : "border-gray-200"
-                      }`}
+                      className={`mt-4 pt-4 border-t w-full flex justify-between items-center ${isDark ? "border-white/10" : "border-gray-200"
+                        }`}
                     >
                       {sponsor.websiteUrl ? (
                         <a
@@ -621,21 +870,19 @@ async function handleFaqSubmit() {
                         <div className="flex gap-1">
                           <button
                             onClick={() => openEdit(sponsor)}
-                            className={`p-1.5 rounded-md transition-colors ${
-                              isDark
-                                ? "hover:bg-white/10"
-                                : "hover:bg-gray-200"
-                            }`}
+                            className={`p-1.5 rounded-md transition-colors ${isDark
+                              ? "hover:bg-white/10"
+                              : "hover:bg-gray-200"
+                              }`}
                           >
                             <Edit2 className="w-4 h-4 text-gray-400" />
                           </button>
                           <button
                             onClick={() => confirmDelete(sponsor)}
-                            className={`p-1.5 rounded-md transition-colors ${
-                              isDark
-                                ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
-                                : "bg-red-50 hover:bg-red-100 text-red-500"
-                            }`}
+                            className={`p-1.5 rounded-md transition-colors ${isDark
+                              ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
+                              : "bg-red-50 hover:bg-red-100 text-red-500"
+                              }`}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -649,7 +896,7 @@ async function handleFaqSubmit() {
           </div>
         )}
 
-        {/* ── Announcements tab (unchanged) ── */}
+        {/* ── Announcements tab ── */}
         {activeTab === "announcements" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center mb-6">
@@ -659,34 +906,251 @@ async function handleFaqSubmit() {
               >
                 Homepage Announcements
               </h2>
-            </div>
-            <div
-              className={`p-8 rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center ${
-                isDark
-                  ? "border-white/10 bg-white/5"
-                  : "border-gray-200 bg-gray-50"
-              }`}
-            >
-              <MessageSquare
-                className={`w-12 h-12 mb-4 ${mutedText} opacity-50`}
-              />
-              <h3 className={`font-semibold text-lg ${textColor} mb-2`}>
-                No Active Announcements
-              </h3>
-              <p className={`${mutedText} text-sm max-w-md mb-6`}>
-                Create an announcement banner that will appear at the top of
-                the homepage for all visitors.
-              </p>
               <button
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                  isDark
-                    ? "bg-white/10 hover:bg-white/20 text-white"
-                    : "bg-gray-200 hover:bg-gray-300 text-gray-900"
-                }`}
+                onClick={openCreateAnnouncement}
+                className="text-sm font-medium hover:underline text-[#588157] hover:text-[#a3b18a] flex items-center gap-1"
               >
-                Create Banner
+                <Plus className="w-3 h-3" />
+                Add Announcement
               </button>
             </div>
+
+            {/* Loading skeleton */}
+            {announcementsLoading && (
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`p-5 rounded-xl border animate-pulse ${itemBg}`}
+                  >
+                    <div
+                      className={`h-4 rounded w-40 mb-3 ${isDark ? "bg-white/10" : "bg-gray-200"
+                        }`}
+                    />
+                    <div
+                      className={`h-3 rounded w-full ${isDark ? "bg-white/10" : "bg-gray-200"
+                        }`}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Announcement cards */}
+            {!announcementsLoading && announcements.length === 0 && (
+              <div
+                className={`p-8 rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center ${isDark
+                  ? "border-white/10 bg-white/5"
+                  : "border-gray-200 bg-gray-50"
+                  }`}
+              >
+                <MessageSquare
+                  className={`w-12 h-12 mb-4 ${mutedText} opacity-50`}
+                />
+                <h3 className={`font-semibold text-lg ${textColor} mb-2`}>
+                  No Active Announcements
+                </h3>
+                <p className={`${mutedText} text-sm max-w-md mb-6`}>
+                  Create an announcement banner that will appear at the top of
+                  the homepage for all visitors.
+                </p>
+                <button
+                  onClick={openCreateAnnouncement}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${isDark
+                    ? "bg-white/10 hover:bg-white/20 text-white"
+                    : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                    }`}
+                >
+                  Create Banner
+                </button>
+              </div>
+            )}
+
+            {!announcementsLoading && announcements.length > 0 && (
+              <div className="space-y-3">
+                {announcements.map((announcement) => (
+                  <div
+                    key={announcement.id}
+                    className={`p-5 rounded-xl border transition-all hover:border-gray-400 group flex items-start justify-between gap-4 ${itemBg}`}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span
+                          className="w-3 h-3 rounded-full shrink-0"
+                          style={{ backgroundColor: announcement.color }}
+                        />
+                        <h4 className={`font-semibold text-lg ${textColor}`}>
+                          {announcement.title}
+                        </h4>
+                        {announcement.isNew && (
+                          <span
+                            className={`px-2 py-0.5 rounded-md text-xs font-medium border ${isDark
+                              ? "bg-white/5 text-gray-300 border-white/10"
+                              : "bg-gray-200 text-gray-700 border-gray-300"
+                              }`}
+                          >
+                            New
+                          </span>
+                        )}
+                      </div>
+                      <p className={`${mutedText} text-sm`}>
+                        {announcement.message}
+                      </p>
+                      <p className={`${mutedText} text-xs mt-2 opacity-60`}>
+                        Icon: {announcement.icon}
+                      </p>
+                    </div>
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => openEditAnnouncement(announcement)}
+                        className={`p-2 rounded-lg transition-colors ${isDark
+                          ? "hover:bg-white/10 text-gray-300"
+                          : "hover:bg-gray-200 text-gray-600"
+                          }`}
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => confirmDeleteAnnouncement(announcement)}
+                        className={`p-2 rounded-lg transition-colors ${isDark
+                          ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
+                          : "bg-red-50 hover:bg-red-100 text-red-600"
+                          }`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Past Events tab ── */}
+        {activeTab === "past-events" && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2
+                className={`text-xl font-bold ${textColor}`}
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              >
+                Past Events Archive
+              </h2>
+              <button
+                onClick={openCreatePastEvent}
+                className="text-sm font-medium hover:underline text-[#588157] hover:text-[#a3b18a] flex items-center gap-1"
+              >
+                <Plus className="w-3 h-3" />
+                Add Past Event
+              </button>
+            </div>
+
+            {/* Loading skeleton */}
+            {pastEventsLoading && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[...Array(2)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`p-5 rounded-xl border animate-pulse ${itemBg}`}
+                  >
+                    <div
+                      className={`h-40 rounded-lg w-full mb-4 ${isDark ? "bg-white/10" : "bg-gray-200"
+                        }`}
+                    />
+                    <div
+                      className={`h-4 rounded w-40 mb-3 ${isDark ? "bg-white/10" : "bg-gray-200"
+                        }`}
+                    />
+                    <div
+                      className={`h-3 rounded w-full ${isDark ? "bg-white/10" : "bg-gray-200"
+                        }`}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Past Event cards */}
+            {!pastEventsLoading && pastEvents.length === 0 && (
+              <div
+                className={`p-8 rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center ${isDark
+                  ? "border-white/10 bg-white/5"
+                  : "border-gray-200 bg-gray-50"
+                  }`}
+              >
+                <Clock
+                  className={`w-12 h-12 mb-4 ${mutedText} opacity-50`}
+                />
+                <h3 className={`font-semibold text-lg ${textColor} mb-2`}>
+                  No Past Events Recorded
+                </h3>
+                <p className={`${mutedText} text-sm max-w-md mb-6`}>
+                  Add events that happened in previous years to show in the showcase gallery on the public past events page.
+                </p>
+                <button
+                  onClick={openCreatePastEvent}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${isDark
+                    ? "bg-white/10 hover:bg-white/20 text-white"
+                    : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                    }`}
+                >
+                  Add First Event
+                </button>
+              </div>
+            )}
+
+            {!pastEventsLoading && pastEvents.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {pastEvents.map((event) => (
+                  <div
+                    key={event.id}
+                    className={`p-5 rounded-xl border transition-all hover:border-gray-400 group flex items-start gap-4 ${itemBg}`}
+                  >
+                    <div className={`w-24 h-24 rounded-lg overflow-hidden shrink-0 border ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+                      {event.imageUrl ? (
+                        <img src={event.imageUrl} alt={event.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-500/10 text-gray-500 italic text-[10px]">No image</div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className={`font-semibold text-lg ${textColor} truncate`}>
+                          {event.name}
+                        </h4>
+                        <span className={`text-xs px-2 py-0.5 rounded bg-[#a3b18a]/20 text-[#588157] font-bold`}>
+                          {new Date(event.date).getFullYear()}
+                        </span>
+                      </div>
+                      <p className={`${mutedText} text-sm line-clamp-2`}>
+                        {event.description}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => openEditPastEvent(event)}
+                        className={`p-2 rounded-lg transition-colors ${isDark
+                          ? "hover:bg-white/10 text-gray-300"
+                          : "hover:bg-gray-200 text-gray-600"
+                          }`}
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => confirmDeletePastEvent(event)}
+                        className={`p-2 rounded-lg transition-colors ${isDark
+                          ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
+                          : "bg-red-50 hover:bg-red-100 text-red-600"
+                          }`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -694,11 +1158,10 @@ async function handleFaqSubmit() {
       {/* ── Create / Edit Dialog ── */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent
-          className={`sm:max-w-md ${
-            isDark
-              ? "bg-[#111116] border-white/10 text-white"
-              : "bg-white text-gray-900"
-          }`}
+          className={`sm:max-w-md ${isDark
+            ? "bg-[#111116] border-white/10 text-white"
+            : "bg-white text-gray-900"
+            }`}
         >
           <DialogHeader>
             <DialogTitle className={textColor}>
@@ -782,11 +1245,10 @@ async function handleFaqSubmit() {
           <DialogFooter className="gap-2">
             <button
               onClick={() => setDialogOpen(false)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isDark
-                  ? "bg-white/10 hover:bg-white/20 text-white"
-                  : "bg-gray-100 hover:bg-gray-200 text-gray-900"
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDark
+                ? "bg-white/10 hover:bg-white/20 text-white"
+                : "bg-gray-100 hover:bg-gray-200 text-gray-900"
+                }`}
             >
               Cancel
             </button>
@@ -801,75 +1263,14 @@ async function handleFaqSubmit() {
                   ? "Saving..."
                   : "Creating..."
                 : editTarget
-                ? "Save Changes"
-                : "Create Sponsor"}
+                  ? "Save Changes"
+                  : "Create Sponsor"}
             </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-<Dialog open={faqDialogOpen} onOpenChange={setFaqDialogOpen}>
-  <DialogContent
-    className={
-      isDark
-        ? "bg-[#111116] border-white/10 text-white"
-        : "bg-white text-gray-900"
-    }
-  >
-    <DialogHeader>
-      <DialogTitle className={textColor}>
-        {faqEditTarget ? "Edit FAQ" : "Add FAQ"}
-      </DialogTitle>
-    </DialogHeader>
-
-    <div className="space-y-3 py-2">
-      <input
-        value={faqForm.question}
-        onChange={(e) =>
-          setFaqForm({ ...faqForm, question: e.target.value })
-        }
-        placeholder="Question"
-        className={`w-full px-3 py-2 border rounded ${inputClass}`}
-      />
-
-      <textarea
-        value={faqForm.answer}
-        onChange={(e) =>
-          setFaqForm({ ...faqForm, answer: e.target.value })
-        }
-        placeholder="Answer"
-        className={`w-full px-3 py-2 border rounded ${inputClass}`}
-      />
-
-      <input
-        type="number"
-        value={faqForm.displayOrder}
-        onChange={(e) =>
-          setFaqForm({
-            ...faqForm,
-            displayOrder: Number(e.target.value),
-          })
-        }
-        className={`w-full px-3 py-2 border rounded ${inputClass}`}
-        placeholder="Display Order"
-      />
-    </div>
-
-    <DialogFooter>
-      <button onClick={() => setFaqDialogOpen(false)}>
-        Cancel
-      </button>
-
-      <button onClick={handleFaqSubmit}>
-        {faqEditTarget ? "Update FAQ" : "Create FAQ"}
-      </button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
-
-
-
-      {/* ── Delete confirmation ── */}
+      {/* ── Delete confirmation (sponsors) ── */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent
           className={
@@ -905,6 +1306,318 @@ async function handleFaqSubmit() {
             >
               {deleting && <Loader2 className="w-3 h-3 animate-spin" />}
               {deleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ── Announcement Create / Edit Dialog ── */}
+      <Dialog open={announcementDialogOpen} onOpenChange={setAnnouncementDialogOpen}>
+        <DialogContent
+          className={`sm:max-w-md ${isDark
+            ? "bg-[#111116] border-white/10 text-white"
+            : "bg-white text-gray-900"
+            }`}
+        >
+          <DialogHeader>
+            <DialogTitle className={textColor}>
+              {announcementEditTarget ? "Edit Announcement" : "Add Announcement"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-1">
+              <label className={`text-sm font-medium ${mutedText}`}>
+                Title *
+              </label>
+              <input
+                value={announcementForm.title}
+                onChange={(e) =>
+                  setAnnouncementForm({ ...announcementForm, title: e.target.value })
+                }
+                placeholder="e.g. Registration is now open!"
+                className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className={`text-sm font-medium ${mutedText}`}>
+                Message *
+              </label>
+              <textarea
+                value={announcementForm.message}
+                onChange={(e) =>
+                  setAnnouncementForm({ ...announcementForm, message: e.target.value })
+                }
+                placeholder="e.g. Team registrations are now open until June 10."
+                rows={3}
+                className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors resize-none ${inputClass}`}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className={`text-sm font-medium ${mutedText}`}>
+                Icon (Lucide icon name)
+              </label>
+              <input
+                value={announcementForm.icon}
+                onChange={(e) =>
+                  setAnnouncementForm({ ...announcementForm, icon: e.target.value })
+                }
+                placeholder="e.g. Bell, Info, AlertCircle"
+                className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className={`text-sm font-medium ${mutedText}`}>
+                Color
+              </label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={announcementForm.color}
+                  onChange={(e) =>
+                    setAnnouncementForm({ ...announcementForm, color: e.target.value })
+                  }
+                  className="w-10 h-9 rounded cursor-pointer border-0 bg-transparent p-0"
+                />
+                <input
+                  value={announcementForm.color}
+                  onChange={(e) =>
+                    setAnnouncementForm({ ...announcementForm, color: e.target.value })
+                  }
+                  placeholder="#588157"
+                  className={`flex-1 px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="announcement-isnew"
+                checked={announcementForm.isNew}
+                onChange={(e) =>
+                  setAnnouncementForm({ ...announcementForm, isNew: e.target.checked })
+                }
+                className="w-4 h-4 accent-[#588157] cursor-pointer"
+              />
+              <label
+                htmlFor="announcement-isnew"
+                className={`text-sm font-medium ${mutedText} cursor-pointer`}
+              >
+                Mark as New
+              </label>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <button
+              onClick={() => setAnnouncementDialogOpen(false)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDark
+                ? "bg-white/10 hover:bg-white/20 text-white"
+                : "bg-gray-100 hover:bg-gray-200 text-gray-900"
+                }`}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleAnnouncementSubmit}
+              disabled={announcementSubmitting}
+              className="px-4 py-2 rounded-lg text-sm font-semibold bg-[#3a5a40] hover:bg-[#344e41] text-white transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              {announcementSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
+              {announcementSubmitting
+                ? announcementEditTarget
+                  ? "Saving..."
+                  : "Creating..."
+                : announcementEditTarget
+                  ? "Save Changes"
+                  : "Create Announcement"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Announcement Delete confirmation ── */}
+      <AlertDialog open={announcementDeleteOpen} onOpenChange={setAnnouncementDeleteOpen}>
+        <AlertDialogContent
+          className={
+            isDark
+              ? "bg-[#111116] border-white/10 text-white"
+              : "bg-white text-gray-900"
+          }
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle className={textColor}>
+              Delete Announcement
+            </AlertDialogTitle>
+            <AlertDialogDescription className={mutedText}>
+              Are you sure you want to delete{" "}
+              <span className="font-semibold">{announcementDeleteTarget?.title}</span>? This
+              action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className={
+                isDark
+                  ? "bg-white/10 hover:bg-white/20 text-white border-white/10"
+                  : ""
+              }
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleAnnouncementDelete}
+              disabled={announcementDeleting}
+              className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 flex items-center gap-2"
+            >
+              {announcementDeleting && <Loader2 className="w-3 h-3 animate-spin" />}
+              {announcementDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ── Past Event Create / Edit Dialog ── */}
+      <Dialog open={pastEventDialogOpen} onOpenChange={setPastEventDialogOpen}>
+        <DialogContent
+          className={`sm:max-w-md ${isDark
+            ? "bg-[#111116] border-white/10 text-white"
+            : "bg-white text-gray-900"
+            }`}
+        >
+          <DialogHeader>
+            <DialogTitle className={textColor}>
+              {pastEventEditTarget ? "Edit Past Event" : "Add Past Event"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-1">
+              <label className={`text-sm font-medium ${mutedText}`}>
+                Event Name *
+              </label>
+              <input
+                value={pastEventForm.name}
+                onChange={(e) =>
+                  setPastEventForm({ ...pastEventForm, name: e.target.value })
+                }
+                placeholder="e.g. ARC 3.0 2024"
+                className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className={`text-sm font-medium ${mutedText}`}>
+                Event Date *
+              </label>
+              <input
+                type="date"
+                value={pastEventForm.date}
+                onChange={(e) =>
+                  setPastEventForm({ ...pastEventForm, date: e.target.value })
+                }
+                className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className={`text-sm font-medium ${mutedText}`}>
+                Description *
+              </label>
+              <textarea
+                value={pastEventForm.description}
+                onChange={(e) =>
+                  setPastEventForm({ ...pastEventForm, description: e.target.value })
+                }
+                placeholder="Briefly describe the event highlights..."
+                rows={3}
+                className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors resize-none ${inputClass}`}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className={`text-sm font-medium ${mutedText}`}>
+                Image URL (optional)
+              </label>
+              <input
+                value={pastEventForm.imageUrl}
+                onChange={(e) =>
+                  setPastEventForm({ ...pastEventForm, imageUrl: e.target.value })
+                }
+                placeholder="https://..."
+                className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <button
+              onClick={() => setPastEventDialogOpen(false)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDark
+                ? "bg-white/10 hover:bg-white/20 text-white"
+                : "bg-gray-100 hover:bg-gray-200 text-gray-900"
+                }`}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handlePastEventSubmit}
+              disabled={pastEventSubmitting}
+              className="px-4 py-2 rounded-lg text-sm font-semibold bg-[#3a5a40] hover:bg-[#344e41] text-white transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              {pastEventSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
+              {pastEventSubmitting
+                ? pastEventEditTarget
+                  ? "Saving..."
+                  : "Creating..."
+                : pastEventEditTarget
+                  ? "Save Changes"
+                  : "Create Event"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Past Event Delete confirmation ── */}
+      <AlertDialog open={pastEventDeleteOpen} onOpenChange={setPastEventDeleteOpen}>
+        <AlertDialogContent
+          className={
+            isDark
+              ? "bg-[#111116] border-white/10 text-white"
+              : "bg-white text-gray-900"
+          }
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle className={textColor}>
+              Delete Past Event
+            </AlertDialogTitle>
+            <AlertDialogDescription className={mutedText}>
+              Are you sure you want to delete{" "}
+              <span className="font-semibold">{pastEventDeleteTarget?.name}</span>? This
+              action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className={
+                isDark
+                  ? "bg-white/10 hover:bg-white/20 text-white border-white/10"
+                  : ""
+              }
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handlePastEventDelete}
+              disabled={pastEventDeleting}
+              className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 flex items-center gap-2"
+            >
+              {pastEventDeleting && <Loader2 className="w-3 h-3 animate-spin" />}
+              {pastEventDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

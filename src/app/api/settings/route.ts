@@ -9,6 +9,7 @@ const DEFAULT_SETTINGS: Record<string, string> = {
   registration_status: 'open',
   max_teams: '500',
   registration_deadline: '2026-06-10T23:59',
+  event_starting_deadline: '2026-06-15T09:00',
   min_members_per_team: '1',
   max_members_per_team: '5',
   enable_leaderboard: 'true',

@@ -13,7 +13,8 @@ import {
   LogOut,
   Moon,
   Sun,
-  Home
+  Home,
+  Trophy
 } from 'lucide-react';
 import { AnimatedMenuButton } from '@/components/AnimatedMenuButton';
 import { signOut } from 'next-auth/react';
@@ -22,6 +23,7 @@ const navItems = [
   { path: '/admin', icon: LayoutDashboard, label: 'Overview', end: true },
   { path: '/admin/users', icon: Users, label: 'Users & Teams' },
   { path: '/admin/segments', icon: Swords, label: 'Segments' },
+  { path: '/admin/leaderboard', icon: Trophy, label: 'Leaderboard' },
   { path: '/admin/schedule', icon: Calendar, label: 'Schedule' },
   { path: '/admin/content', icon: LayoutTemplate, label: 'Content' },
   { path: '/admin/settings', icon: Settings, label: 'Settings' },
@@ -47,7 +49,7 @@ export const AdminLayout = () => {
     <div
       className={`min-h-screen flex antialiased transition-colors duration-300 ${isDark
           ? 'bg-[#0A0A0F] text-[#F5F5F0] selection:bg-[#588157] selection:text-[#F5F5F0]'
-          : 'bg-[#dad7cd] text-[#1a1a14] selection:bg-[#3a5a40] selection:text-white'
+          : 'bg-[var(--background)] text-[#1a1a14] selection:bg-[#3a5a40] selection:text-white'
         }`}
       style={{ fontFamily: "'Inter', sans-serif" }}
     >

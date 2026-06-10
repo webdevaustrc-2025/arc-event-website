@@ -58,10 +58,8 @@ export async function POST(request: Request) {
     const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
 
     // Upload to Cloudinary using the configured avatar upload preset.
-    const uploadResult = await cloudinary.uploader.upload(base64, {
-      upload_preset: AVATAR_UPLOAD_PRESET,
+    const uploadResult = await cloudinary.uploader.unsigned_upload(base64, AVATAR_UPLOAD_PRESET, {
       resource_type: "image",
-      transformation: [{ width: 400, height: 400, crop: "fill", gravity: "face" }],
     });
 
     const avatarUrl = uploadResult.secure_url;

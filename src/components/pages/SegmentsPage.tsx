@@ -91,13 +91,13 @@ export default function SegmentsPage({ dbSegments }: { dbSegments?: DbSegment[] 
       <div className="flex flex-col items-center text-center mb-16 relative">
         {/* No glow blob */}
         
-        <div className="text-gray-400 text-sm tracking-widest mb-6">
-          <Link to="/" className="hover:text-white transition-colors">HOME</Link> / SEGMENTS
+        <div className="text-sm tracking-widest mb-6" style={{ color: 'var(--text-muted)' }}>
+          <Link to="/" className="hover:text-[var(--text-heading)] transition-colors">HOME</Link> / SEGMENTS
         </div>
         <h1 className="text-5xl md:text-7xl font-bold mb-6" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
           All Segments.
         </h1>
-        <p className="text-gray-400 max-w-2xl mb-12">
+        <p className="max-w-2xl mb-12" style={{ color: 'var(--text-body)' }}>
           Discover our 12 competitive segments across different disciplines. Filter by category to find your perfect match.
         </p>
 
@@ -109,8 +109,8 @@ export default function SegmentsPage({ dbSegments }: { dbSegments?: DbSegment[] 
               onClick={() => setActiveFilter(f)}
               className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 border ${
                 activeFilter === f 
-                  ? 'bg-[rgba(88,129,87,0.12)] border-[#588157] text-[#a3b18a]' 
-                  : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
+                  ? 'bg-[#588157]/15 border-[#588157] text-[var(--text-heading)] shadow-md' 
+                  : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-[var(--text-body)] hover:bg-black/10 dark:hover:bg-white/10'
               }`}
             >
               {f}
@@ -127,11 +127,11 @@ export default function SegmentsPage({ dbSegments }: { dbSegments?: DbSegment[] 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="group relative flex flex-col rounded-2xl backdrop-blur-md transition-all duration-500 hover:-translate-y-2 overflow-hidden"
+            className="group relative flex flex-col rounded-2xl backdrop-blur-md transition-all duration-500 hover:-translate-y-2 overflow-hidden border"
             style={{
-              background: 'linear-gradient(135deg, rgba(58,90,64,0.06) 0%, rgba(163,177,138,0.03) 100%)',
-              border: '1px solid rgba(163,177,138,0.12)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.03)',
+              background: 'var(--glass-panel-bg)',
+              borderColor: 'var(--glass-panel-border)',
+              boxShadow: 'var(--glass-panel-shadow)',
             }}
           >
             {/* Image Section */}
@@ -154,9 +154,9 @@ export default function SegmentsPage({ dbSegments }: { dbSegments?: DbSegment[] 
                 <span
                   className="px-3 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase backdrop-blur-md"
                   style={{
-                    background: 'rgba(88,129,87,0.25)',
-                    border: '1px solid rgba(163,177,138,0.3)',
-                    color: '#a3b18a',
+                    background: 'var(--border)',
+                    border: '1px solid var(--glass-panel-border)',
+                    color: 'var(--text-heading)',
                   }}
                 >
                   {seg.type}
@@ -183,14 +183,14 @@ export default function SegmentsPage({ dbSegments }: { dbSegments?: DbSegment[] 
             <div className="flex flex-col flex-grow p-6">
               {/* Title */}
               <h3
-                className="text-2xl font-bold mb-3 text-white group-hover:text-[#a3b18a] transition-colors duration-300"
+                className="text-2xl font-bold mb-3 transition-colors duration-300 text-[var(--text-heading)] group-hover:text-primary"
                 style={{ fontFamily: "'Space Grotesk', sans-serif" }}
               >
                 {seg.title}
               </h3>
 
               {/* Description */}
-              <p className="text-[#9A9A8E] text-sm leading-relaxed mb-6 flex-grow">
+              <p className="text-sm leading-relaxed mb-6 flex-grow" style={{ color: 'var(--text-body)' }}>
                 {seg.desc}
               </p>
 
@@ -198,15 +198,15 @@ export default function SegmentsPage({ dbSegments }: { dbSegments?: DbSegment[] 
               <div className="space-y-3 mb-6">
                 <div className="flex items-center gap-2.5 text-sm">
                   <Calendar className="w-4 h-4 text-[#588157]" />
-                  <span className="text-gray-300">{seg.schedule}</span>
+                  <span style={{ color: 'var(--text-body)' }}>{seg.schedule}</span>
                 </div>
                 <div className="flex items-center gap-2.5 text-sm">
                   <MapPin className="w-4 h-4 text-[#588157]" />
-                  <span className="text-gray-300">{seg.location}</span>
+                  <span style={{ color: 'var(--text-body)' }}>{seg.location}</span>
                 </div>
                 <div className="flex items-center gap-2.5 text-sm">
                   <Clock className="w-4 h-4 text-[#588157]" />
-                  <span className="text-gray-300">Deadline: {seg.deadline}</span>
+                  <span style={{ color: 'var(--text-body)' }}>Deadline: {seg.deadline}</span>
                 </div>
               </div>
 
@@ -235,9 +235,9 @@ export default function SegmentsPage({ dbSegments }: { dbSegments?: DbSegment[] 
                 <button
                   className="flex-1 py-3 rounded-xl text-sm font-semibold backdrop-blur-md transition-all duration-300 hover:scale-105"
                   style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(163,177,138,0.2)',
-                    color: '#a3b18a',
+                    background: 'var(--border)',
+                    border: '1px solid var(--glass-panel-border)',
+                    color: 'var(--text-heading)',
                   }}
                 >
                   Rule Book

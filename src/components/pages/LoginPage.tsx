@@ -110,7 +110,12 @@ export default function LoginPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 w-full sm:max-w-[480px] bg-[#111116]/90 backdrop-blur-xl sm:border border-white/[0.07] sm:rounded-3xl p-8 sm:p-10 sm:shadow-[0_2px_12px_rgba(0,0,0,0.30)] overflow-hidden min-h-[calc(100vh-68px)] sm:min-h-0 flex flex-col justify-center"
+        className="relative z-10 w-full sm:max-w-[480px] backdrop-blur-xl sm:border sm:rounded-3xl p-8 sm:p-10 min-h-[calc(100vh-68px)] sm:min-h-0 flex flex-col justify-center"
+        style={{
+          background: 'var(--glass-panel-bg)',
+          borderColor: 'var(--glass-panel-border)',
+          boxShadow: 'var(--glass-panel-shadow)',
+        }}
       >
         {/* Clean accent top border */}
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-[#3a5a40]" />
@@ -119,14 +124,14 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center justify-center gap-2 mb-6 hover:opacity-80 transition-opacity">
             <Cpu className="text-[#588157] w-6 h-6" />
-            <span className="font-bold tracking-widest text-lg uppercase text-[#F5F5F0]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            <span className="font-bold tracking-widest text-lg uppercase" style={{ color: 'var(--text-heading)', fontFamily: "'Space Grotesk', sans-serif" }}>
               ARC 3.0
             </span>
           </Link>
-          <h2 className="text-4xl font-bold mb-3 text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+          <h2 className="text-4xl font-bold mb-3" style={{ color: 'var(--text-heading)', fontFamily: "'Space Grotesk', sans-serif" }}>
             {isSignUp ? 'Create Account.' : 'Welcome Back.'}
           </h2>
-          <p className="text-gray-400">
+          <p style={{ color: 'var(--text-body)' }}>
             {isSignUp ? 'Sign up to register events and compete.' : 'Sign in to access your participant dashboard.'}
           </p>
         </div>
@@ -148,13 +153,13 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {isSignUp && (
             <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#5A5A52]" />
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--text-muted)' }} />
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Full name"
-                className="w-full bg-[#18181f] border border-white/[0.07] rounded-xl py-4 pl-12 pr-4 text-[#F5F5F0] placeholder:text-[#5A5A52] focus:outline-none focus:border-[#588157] transition-colors"
+                className="w-full bg-[var(--input-background)] border border-[var(--glass-panel-border)] rounded-xl py-4 pl-12 pr-4 text-[var(--text-heading)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#588157] transition-all duration-300"
                 style={{ fontSize: '16px' }}
                 required
               />
@@ -162,33 +167,34 @@ export default function LoginPage() {
           )}
 
           <div className="relative">
-            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#5A5A52]" />
+            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--text-muted)' }} />
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email address"
-              className="w-full bg-[#18181f] border border-white/[0.07] rounded-xl py-4 pl-12 pr-4 text-[#F5F5F0] placeholder:text-[#5A5A52] focus:outline-none focus:border-[#588157] transition-colors"
+              className="w-full bg-[var(--input-background)] border border-[var(--glass-panel-border)] rounded-xl py-4 pl-12 pr-4 text-[var(--text-heading)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#588157] transition-all duration-300"
               style={{ fontSize: '16px' }}
               required
             />
           </div>
 
           <div className="relative">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#5A5A52]" />
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--text-muted)' }} />
             <input
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
-              className="w-full bg-[#18181f] border border-white/[0.07] rounded-xl py-4 pl-12 pr-12 text-[#F5F5F0] placeholder:text-[#5A5A52] focus:outline-none focus:border-[#588157] transition-colors"
+              className="w-full bg-[var(--input-background)] border border-[var(--glass-panel-border)] rounded-xl py-4 pl-12 pr-12 text-[var(--text-heading)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#588157] transition-all duration-300"
               style={{ fontSize: '16px' }}
               required
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-[#5A5A52] hover:text-[#F5F5F0] transition-colors"
+              className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
+              style={{ color: 'var(--text-muted)' }}
             >
               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
@@ -215,10 +221,10 @@ export default function LoginPage() {
         {/* OAuth Divider */}
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/[0.07]"></div>
+            <div className="w-full border-t" style={{ borderColor: 'var(--border)' }}></div>
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-[#111116] px-2 text-[#5A5A52]">Or continue with</span>
+            <span className="bg-[var(--card)] px-2" style={{ color: 'var(--text-muted)' }}>Or continue with</span>
           </div>
         </div>
 
@@ -226,7 +232,7 @@ export default function LoginPage() {
         <button
           type="button"
           onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
-          className="w-full bg-[#18181f] text-[#F5F5F0] border border-white/[0.07] py-4 rounded-xl font-bold hover:bg-white/[0.03] transition-colors flex items-center justify-center gap-3"
+          className="w-full bg-[var(--input-background)] text-[var(--text-heading)] border border-[var(--glass-panel-border)] py-4 rounded-xl font-bold hover:opacity-90 transition-all duration-300 flex items-center justify-center gap-3"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path
@@ -254,8 +260,8 @@ export default function LoginPage() {
         </button>
 
         {/* Toggle Footer */}
-        <div className="mt-8 pt-8 border-t border-white/[0.07] text-center">
-          <p className="text-[#9A9A8E] text-sm">
+        <div className="mt-8 pt-8 border-t text-center" style={{ borderColor: 'var(--border)' }}>
+          <p className="text-sm" style={{ color: 'var(--text-body)' }}>
             {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
             <button
               type="button"
@@ -274,7 +280,7 @@ export default function LoginPage() {
         <div className="mt-8 text-center">
           <div className="flex items-center justify-center -space-x-2 mb-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="w-8 h-8 rounded-full border-2 border-[#111116] bg-gray-800 overflow-hidden">
+              <div key={i} className="w-8 h-8 rounded-full border-2 bg-gray-800 overflow-hidden" style={{ borderColor: 'var(--card)' }}>
                 <img
                   src={`https://images.unsplash.com/photo-1531427186611-${i}b10b9?auto=format&fit=crop&q=80&w=100&h=100`}
                   alt="avatar"
@@ -282,11 +288,11 @@ export default function LoginPage() {
                 />
               </div>
             ))}
-            <div className="w-8 h-8 rounded-full border-2 border-[#111116] bg-[#3a5a40]/30 flex items-center justify-center text-[10px] font-bold text-[#a3b18a]">
+            <div className="w-8 h-8 rounded-full border-2 bg-[#3a5a40]/30 flex items-center justify-center text-[10px] font-bold text-[#a3b18a]" style={{ borderColor: 'var(--card)' }}>
               500+
             </div>
           </div>
-          <p className="text-xs text-[#5A5A52] uppercase tracking-widest">
+          <p className="text-xs uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
             Participants Already Registered
           </p>
         </div>
