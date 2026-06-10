@@ -89,6 +89,13 @@ interface PastEventForm {
   imageUrl: string;
 }
 
+interface FAQ {
+  id: number;
+  question: string;
+  answer: string;
+  displayOrder: number;
+}
+
 // ─── Fallback dummy data (never removed) ──────────────────────────────────────
 
 const FALLBACK_SPONSORS: Sponsor[] = [
@@ -278,9 +285,14 @@ const [faqForm, setFaqForm] = useState({
 }, []);
 
   useEffect(() => {
-  if (activeTab === "sponsors") {
-    fetchSponsors();
-  }
+    if (activeTab === "faq") fetchFaqs();
+  }, [activeTab, fetchFaqs]);
+
+  useEffect(() => {
+    if (activeTab === "sponsors") {
+      fetchSponsors();
+    }
+  }, [activeTab, fetchSponsors]);
 
   // ── Fetch announcements ───────────────────────────────────────────────────
 
@@ -715,7 +727,7 @@ async function handleFaqEdit() {
                           : "bg-gray-200 text-gray-700 border-gray-300"
                           }`}
                       >
-                        {faq.category}
+                        #{faq.displayOrder}
                       </span>
                       <h4 className={`font-semibold text-lg ${textColor}`}>
                         {faq.question}
