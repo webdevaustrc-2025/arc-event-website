@@ -31,31 +31,40 @@ const fallbackFaqs = [
   }
 ];
 
-export const FAQ = () => {
+export const FAQ = ({ dbFAQs }: { dbFAQs?: any[] }) => {
   const [open, setOpen] = useState<number | null>(0);
   const [faqs, setFaqs] = useState<any[]>([]);
 
   useEffect(() => {
+    if (dbFAQs && dbFAQs.length > 0) {
+      const formatted = dbFAQs.map((faq: any) => ({
+        q: faq.question,
+        a: faq.answer,
+      }));
+      setFaqs(formatted);
+      return;
+    }
+
     async function loadFaqs() {
       try {
         const res = await fetch("/api/admin/faqs");
         const data = await res.json();
 
-        const dbFaqs = data.map((faq: any) => ({
+        const mappedFaqs = data.map((faq: any) => ({
           q: faq.question,
           a: faq.answer,
         }));
 
-        setFaqs(dbFaqs);
+        setFaqs(mappedFaqs);
       } catch (error) {
         console.error("Failed to load FAQs", error);
       }
     }
 
     loadFaqs();
-  }, []);
+  }, [dbFAQs]);
 
-  const items = faqs ?? [];
+  const items = faqs.length > 0 ? faqs : fallbackFaqs;
 
   
 

@@ -45,8 +45,13 @@ interface Sponsor {
   websiteUrl?: string | null;
   displayOrder: number;
 }
-
-
+interface FAQ {
+  id: number;
+  question: string;
+  answer: string;
+  category: string;
+  displayOrder: number;
+}
 
 interface SponsorForm {
   name: string;
@@ -89,12 +94,6 @@ interface PastEventForm {
   imageUrl: string;
 }
 
-interface FAQ {
-  id: number;
-  question: string;
-  answer: string;
-  displayOrder: number;
-}
 
 // ─── Fallback dummy data (never removed) ──────────────────────────────────────
 
