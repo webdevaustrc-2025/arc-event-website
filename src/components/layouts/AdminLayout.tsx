@@ -49,7 +49,7 @@ export const AdminLayout = () => {
     <div
       className={`min-h-screen flex antialiased transition-colors duration-300 ${isDark
           ? 'bg-[#0A0A0F] text-[#F5F5F0] selection:bg-[#588157] selection:text-[#F5F5F0]'
-          : 'bg-[#dad7cd] text-[#1a1a14] selection:bg-[#3a5a40] selection:text-white'
+          : 'bg-[var(--background)] text-[#1a1a14] selection:bg-[#3a5a40] selection:text-white'
         }`}
       style={{ fontFamily: "'Inter', sans-serif" }}
     >

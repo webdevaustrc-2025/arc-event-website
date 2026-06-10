@@ -198,16 +198,26 @@ export function Sponsors({ dbSponsors }: { dbSponsors?: GroupedSponsors }) {
 
     const config = tierConfig[tier];
 
+    const textColor = `var(--sponsor-${tier}-text)`;
+    const bgColor = `var(--sponsor-${tier}-bg)`;
+    const iconBgColor = `var(--sponsor-${tier}-icon)`;
+
     return (
       <div key={tier} className="mb-20 last:mb-0">
         <div className="text-center mb-12">
           <h2
-            className={`text-4xl md:text-5xl font-bold mb-4 ${config.color}`}
-            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            className="text-4xl md:text-5xl font-bold mb-4"
+            style={{ 
+              fontFamily: "'Space Grotesk', sans-serif",
+              color: textColor
+            }}
           >
             {config.title}
           </h2>
-          <div className={`w-24 h-1 ${config.bg} mx-auto rounded-full`} />
+          <div 
+            className="w-24 h-1 mx-auto rounded-full" 
+            style={{ backgroundColor: bgColor }}
+          />
           {usingFallback && (
             <p className="text-xs text-gray-500 mt-3">(Demo data - waiting for sponsors)</p>
           )}
@@ -254,14 +264,18 @@ export function Sponsors({ dbSponsors }: { dbSponsors?: GroupedSponsors }) {
                       const parent = e.currentTarget.parentElement;
                       if (parent) {
                         const iconDiv = document.createElement("div");
-                        iconDiv.className = `${config.iconBg} rounded-full p-4`;
+                        iconDiv.className = `rounded-full p-4`;
+                        iconDiv.style.backgroundColor = iconBgColor;
                         iconDiv.innerHTML = `<div class="text-[var(--text-body)]">${getSponsorIcon(sponsor.name)}</div>`;
                         parent.appendChild(iconDiv);
                       }
                     }}
                   />
                 ) : (
-                  <div className={`${config.iconBg} rounded-full p-4 text-[var(--text-body)]`}>
+                  <div 
+                    className="rounded-full p-4 text-[var(--text-body)]"
+                    style={{ backgroundColor: iconBgColor }}
+                  >
                     {getSponsorIcon(sponsor.name)}
                   </div>
                 )}

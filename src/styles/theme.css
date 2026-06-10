@@ -64,6 +64,16 @@
   
   --prize-amount-bg: linear-gradient(180deg, #1e3625 0%, #3d5a40 60%, #588157 100%);
 
+  --sponsor-gold-text: #b45309;
+  --sponsor-gold-bg: #d97706;
+  --sponsor-gold-icon: rgba(217, 119, 6, 0.1);
+  --sponsor-silver-text: #4b5563;
+  --sponsor-silver-bg: #6b7280;
+  --sponsor-silver-icon: rgba(107, 114, 128, 0.1);
+  --sponsor-bronze-text: #c2410c;
+  --sponsor-bronze-bg: #ea580c;
+  --sponsor-bronze-icon: rgba(234, 88, 12, 0.1);
+
   /* Navigation Arrows */
   --arrow-bg: rgba(226, 235, 217, 0.85);
   --arrow-border: rgba(88, 129, 87, 0.22);
@@ -131,6 +141,16 @@
   --faq-active-border: rgba(88, 160, 88, 0.12);
   
   --prize-amount-bg: linear-gradient(180deg, #FFFFFF 0%, #9A9A8E 60%, #5A5A52 100%);
+
+  --sponsor-gold-text: #fde047;
+  --sponsor-gold-bg: #facc15;
+  --sponsor-gold-icon: rgba(250, 204, 21, 0.1);
+  --sponsor-silver-text: #e5e7eb;
+  --sponsor-silver-bg: #9ca3af;
+  --sponsor-silver-icon: rgba(156, 163, 175, 0.1);
+  --sponsor-bronze-text: #fdba74;
+  --sponsor-bronze-bg: #f97316;
+  --sponsor-bronze-icon: rgba(249, 115, 22, 0.1);
 
   /* Navigation Arrows */
   --arrow-bg: rgba(18, 32, 22, 0.75);

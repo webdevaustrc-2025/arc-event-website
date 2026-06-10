@@ -174,10 +174,7 @@ export const PrizePool = () => {
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: 'clamp(64px, 8vw, 96px)',
-              background: 'var(--prize-amount-bg)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
+              color: 'var(--text-heading)',
             }}
           >
             ৳1,00,000+

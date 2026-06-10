@@ -10,8 +10,18 @@ import {
 } from "lucide-react";
 import { ShineButton } from "./ShineButton";
 import { Link } from "@/lib/router-compat";
+import { useTheme } from "next-themes";
 
 export const Hero = () => {
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = !mounted || resolvedTheme !== "light";
+
   const [timeLeft, setTimeLeft] = useState({
     days: 45,
     hours: 12,
@@ -104,7 +114,8 @@ export const Hero = () => {
           loop
           muted
           playsInline
-          className="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto -translate-x-1/2 -translate-y-1/2 object-cover"
+          className="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto -translate-x-1/2 -translate-y-1/2 object-cover transition-opacity duration-500"
+          style={{ opacity: isDark ? 1 : 0.38 }}
         >
           <source
             src="https://res.cloudinary.com/dec82taov/video/upload/v1778156010/Text_ARC_3.0_assembling_glowing_202605071801_kycjem.mp4"
@@ -112,9 +123,23 @@ export const Hero = () => {
           />
         </video>
         {/* Sharp gradient overlay - NO BLUR for crisp hero */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0F]/75 via-[#0A0A0F]/60 to-[#0A0A0F]/95" />
+        <div
+          className="absolute inset-0 transition-all duration-500"
+          style={{
+            background: isDark
+              ? 'linear-gradient(to bottom, rgba(10, 10, 15, 0.75), rgba(10, 10, 15, 0.60), rgba(10, 10, 15, 0.95))'
+              : 'linear-gradient(to bottom, rgba(218, 226, 210, 0.90), rgba(228, 236, 220, 0.78), rgba(240, 244, 240, 0.98))',
+          }}
+        />
         {/* Subtle color tint - NO BLUR */}
-        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#588157]/[0.04]" />
+        <div
+          className="absolute inset-0 transition-all duration-500"
+          style={{
+            background: isDark
+              ? 'radial-gradient(ellipse 120% 60% at 20% 50%, rgba(50, 110, 60, 0.14) 0%, transparent 65%)'
+              : 'radial-gradient(ellipse 120% 60% at 20% 50%, rgba(88, 129, 87, 0.08) 0%, transparent 65%)',
+          }}
+        />
       </div>
 
       <section
@@ -138,7 +163,7 @@ export const Hero = () => {
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent group-hover:translate-x-full transition-transform duration-1000" />
 
-            <span className="text-[#a3b18a] font-medium relative z-10">
+            <span className="font-medium relative z-10" style={{ color: isDark ? '#a3b18a' : 'var(--text-label)' }}>
               Powered by AUSTRC
             </span>
           </motion.div>
@@ -150,6 +175,7 @@ export const Hero = () => {
             transition={{ delay: 0.1 }}
             className="font-bold leading-[0.95] tracking-tighter"
             style={{
+              color: 'var(--text-heading)',
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: "clamp(32px, 8vw, 112px)",
             }}
@@ -165,7 +191,8 @@ export const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="mt-8 text-[#9A9A8E] text-lg md:text-xl max-w-2xl font-light"
+            className="mt-8 text-lg md:text-xl max-w-2xl font-light"
+            style={{ color: 'var(--text-body)' }}
           >
             Bangladesh's Most Anticipated University Robotics
             Championship
@@ -190,14 +217,14 @@ export const Hero = () => {
                   background: 'linear-gradient(135deg, #588157 0%, #a3b18a 50%, #3a5a40 100%)',
                 }}
               />
-              <span className="relative z-10 flex items-center justify-center gap-3 px-8 py-4 rounded-full backdrop-blur-md bg-white/5 border border-white/10">
-                <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 transition-transform duration-500 group-hover:translate-x-1 group-hover:text-white">
+              <span className="relative z-10 flex items-center justify-center gap-3 px-8 py-4 rounded-full backdrop-blur-md bg-white/5 dark:bg-black/5 border border-white/10 dark:border-black/10">
+                <div className="w-6 h-6 rounded-full bg-white/10 dark:bg-black/10 flex items-center justify-center flex-shrink-0 transition-transform duration-500 group-hover:translate-x-1 group-hover:text-white">
                   <Play
                     className="w-3 h-3 ml-0.5"
                     fill="currentColor"
                   />
                 </div>
-                <span className="text-[#9A9A8E] transition-all duration-500 group-hover:translate-x-1 group-hover:text-white">
+                <span className="transition-all duration-500 group-hover:translate-x-1 group-hover:text-white" style={{ color: 'var(--text-body)' }}>
                   Watch Highlights
                 </span>
               </span>
@@ -220,7 +247,7 @@ export const Hero = () => {
               transition={{ delay: 0.6, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col items-center lg:items-start h-full justify-end"
             >
-              <span className="text-xs tracking-[0.2em] text-[#5A5A52] uppercase mb-6 font-medium">
+              <span className="text-xs tracking-[0.2em] uppercase mb-6 font-medium" style={{ color: 'var(--text-muted)' }}>
                 Event Overview
               </span>
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-8 sm:gap-12">
@@ -237,14 +264,15 @@ export const Hero = () => {
                     className="flex flex-col items-center group cursor-default"
                   >
                     <h3
-                      className="text-3xl sm:text-4xl font-bold text-[#a3b18a] tracking-tight leading-none mb-2 group-hover:text-[#588157] group-hover:scale-110 transition-all duration-300"
+                      className="text-3xl sm:text-4xl font-bold tracking-tight leading-none mb-2 group-hover:text-[#588157] group-hover:scale-110 transition-all duration-300"
                       style={{
+                        color: isDark ? '#a3b18a' : '#3a5a40',
                         fontFamily: "'Space Grotesk', sans-serif",
                       }}
                     >
                       {stat.value}
                     </h3>
-                    <p className="text-[10px] sm:text-xs font-medium text-[#5A5A52] uppercase tracking-wider">
+                    <p className="text-[10px] sm:text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
                       {stat.label}
                     </p>
                   </motion.div>
@@ -259,7 +287,7 @@ export const Hero = () => {
               transition={{ delay: 0.6, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col items-center lg:items-end h-full justify-end"
             >
-              <span className="text-xs tracking-[0.2em] text-[#5A5A52] uppercase mb-6 font-medium">
+              <span className="text-xs tracking-[0.2em] uppercase mb-6 font-medium" style={{ color: 'var(--text-muted)' }}>
                 Event Begins In
               </span>
               <div className="flex items-center gap-2 sm:gap-3">
@@ -283,31 +311,34 @@ export const Hero = () => {
                       <div
                         className="relative w-16 h-20 sm:w-20 sm:h-24 flex items-center justify-center rounded-2xl border transition-all duration-300 shadow-lg group-hover:scale-105 group-hover:shadow-2xl"
                         style={{
-                          background:
-                            "linear-gradient(135deg, rgba(58,90,64,0.25) 0%, rgba(163,177,138,0.15) 100%)",
-                          borderColor: "rgba(163,177,138,0.35)",
+                          background: isDark
+                            ? "linear-gradient(135deg, rgba(58,90,64,0.25) 0%, rgba(163,177,138,0.15) 100%)"
+                            : "linear-gradient(135deg, rgba(88,129,87,0.10) 0%, rgba(88,129,87,0.05) 100%)",
+                          borderColor: isDark ? "rgba(163,177,138,0.35)" : "rgba(88,129,87,0.20)",
                           backdropFilter: "blur(20px) saturate(180%)",
-                          boxShadow:
-                            "0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(88,129,87,0.1)",
+                          boxShadow: isDark
+                            ? "0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(88,129,87,0.1)"
+                            : "0 8px 32px rgba(88,129,87,0.06), inset 0 1px 0 rgba(255,255,255,0.6), 0 0 0 1px rgba(88,129,87,0.05)",
                         }}
                       >
                         <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/[0.05] to-transparent pointer-events-none" />
                         <div className="absolute inset-0 rounded-2xl bg-[#588157]/0 group-hover:bg-[#588157]/10 transition-colors duration-300" />
                         <span
-                          className="text-3xl sm:text-4xl font-bold text-[#a3b18a] relative z-10 group-hover:scale-110 transition-transform duration-300"
+                          className="text-3xl sm:text-4xl font-bold relative z-10 group-hover:scale-110 transition-transform duration-300"
                           style={{
+                            color: 'var(--text-heading)',
                             fontFamily: "'Space Grotesk', sans-serif",
                           }}
                         >
                           {unit.value.toString().padStart(2, "0")}
                         </span>
                       </div>
-                      <span className="text-[10px] sm:text-xs text-[#5A5A52] uppercase tracking-wider font-medium">
+                      <span className="text-[10px] sm:text-xs uppercase tracking-wider font-medium" style={{ color: 'var(--text-muted)' }}>
                         {unit.label}
                       </span>
                     </motion.div>
                     {i < 3 && (
-                      <span className="text-[#5A5A52] text-2xl sm:text-3xl font-light mb-8 opacity-40">
+                      <span className="text-2xl sm:text-3xl font-light mb-8 opacity-40" style={{ color: 'var(--text-muted)' }}>
                         :
                       </span>
                     )}
