@@ -13,7 +13,8 @@ import {
   LogOut,
   Moon,
   Sun,
-  Home
+  Home,
+  Trophy
 } from 'lucide-react';
 import { AnimatedMenuButton } from '@/components/AnimatedMenuButton';
 import { signOut } from 'next-auth/react';
@@ -24,6 +25,7 @@ const navItems = [
   { path: '/admin/segments', icon: Swords, label: 'Segments' },
   { path: '/admin/schedule', icon: Calendar, label: 'Schedule' },
   { path: '/admin/content', icon: LayoutTemplate, label: 'Content' },
+  { path: '/admin/past-events', icon: Trophy, label: 'Past Events' },
   { path: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
 

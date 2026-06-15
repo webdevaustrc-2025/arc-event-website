@@ -120,6 +120,27 @@ model PastEvent {
   date        DateTime
   description String
   imageUrl    String?
+  judges      Judge[]
+  winners     Winner[]
+}
+
+model Judge {
+  id          Int      @id @default(autoincrement())
+  name        String
+  title       String
+  imageUrl    String?
+  pastEventId Int
+  pastEvent   PastEvent @relation(fields: [pastEventId], references: [id], onDelete: Cascade)
+}
+
+model Winner {
+  id          Int      @id @default(autoincrement())
+  name        String
+  imageUrl    String?
+  position    String
+  segmentName String
+  pastEventId Int
+  pastEvent   PastEvent @relation(fields: [pastEventId], references: [id], onDelete: Cascade)
 }
 
 model Certificate {

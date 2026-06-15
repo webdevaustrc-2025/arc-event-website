@@ -1,7 +1,8 @@
 "use client";
 import React from 'react';
 import { useResolvedTheme } from '@/hooks/useResolvedTheme';
-import { Plus, Edit2, Trash2, Users, Trophy, Clock } from 'lucide-react';
+import { Plus, Edit2, Trash2, Users, Trophy, Clock, Award } from 'lucide-react';
+import Link from 'next/link';
 
 const segmentsData = [
   { id: 1, title: 'Robo Wars', participants: 48, prize: '$5,000', status: 'Active', duration: '3 Hours', color: 'from-orange-500/20 to-red-500/20' },
@@ -83,9 +84,12 @@ export default function AdminSegmentsPage() {
                 }`}>
                 {segment.status}
               </span>
-              <button className={`text-sm font-medium hover:underline text-[#588157] hover:text-[#a3b18a]`}>
-                Manage Teams
-              </button>
+              <Link href="/admin/segments/winners" className="text-sm font-medium hover:underline text-[#588157] hover:text-[#a3b18a]">
+                <div className="flex items-center gap-1">
+                  <Award className="w-4 h-4" />
+                  <span>Manage Winners</span>
+                </div>
+              </Link>
             </div>
           </div>
         ))}
