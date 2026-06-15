@@ -6,6 +6,7 @@ export default async function Page() {
   let sponsors: any[] = [];
   let pastEvents: any[] = [];
   let faqs: any[] = [];
+  let reviews: any[] = [];
 
   try {
     segments = await prisma.segment.findMany({
@@ -19,6 +20,9 @@ export default async function Page() {
       orderBy: { date: "desc" },
     });
     faqs = await prisma.fAQ.findMany({
+      orderBy: { displayOrder: "asc" },
+    });
+    reviews = await prisma.review.findMany({
       orderBy: { displayOrder: "asc" },
     });
   } catch (error) {
@@ -41,6 +45,7 @@ export default async function Page() {
       dbSponsors={groupedSponsors}
       dbPhotos={photos}
       dbFAQs={faqs}
+      dbReviews={reviews}
     />
   );
 }

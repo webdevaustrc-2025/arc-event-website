@@ -12,6 +12,7 @@ import {
   Image as ImageIcon,
   Loader2,
   Clock,
+  Quote,
 } from "lucide-react";
 import { toast } from "sonner";
 import { adminFetch } from "@/lib/admin-api";
@@ -94,6 +95,23 @@ interface PastEventForm {
   imageUrl: string;
 }
 
+interface Review {
+  id: number;
+  name: string;
+  team: string;
+  quote: string;
+  displayOrder: number;
+  createdAt: string;
+}
+
+interface ReviewForm {
+  name: string;
+  team: string;
+  quote: string;
+  displayOrder: number;
+}
+
+
 
 // ─── Fallback dummy data (never removed) ──────────────────────────────────────
 
@@ -158,6 +176,14 @@ const EMPTY_PAST_EVENT_FORM: PastEventForm = {
   description: "",
   imageUrl: "",
 };
+
+const EMPTY_REVIEW_FORM: ReviewForm = {
+  name: "",
+  team: "",
+  quote: "",
+  displayOrder: 0,
+};
+
 
 // ─── Tier styling ─────────────────────────────────────────────────────────────
 
@@ -248,6 +274,21 @@ const [faqForm, setFaqForm] = useState({
   const [pastEventDeleteOpen, setPastEventDeleteOpen] = useState(false);
   const [pastEventDeleting, setPastEventDeleting] = useState(false);
 
+  // ── Review state ──────────────────────────────────────────────────────────
+
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [reviewEditTarget, setReviewEditTarget] = useState<Review | null>(null);
+  const [reviewForm, setReviewForm] = useState<ReviewForm>(EMPTY_REVIEW_FORM);
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+
+  const [reviewDeleteTarget, setReviewDeleteTarget] = useState<Review | null>(null);
+  const [reviewDeleteOpen, setReviewDeleteOpen] = useState(false);
+  const [reviewDeleting, setReviewDeleting] = useState(false);
+
+
   // ── Fetch sponsors ────────────────────────────────────────────────────────
 
   const fetchSponsors = useCallback(async () => {
@@ -331,6 +372,26 @@ const [faqForm, setFaqForm] = useState({
     if (activeTab === "past-events") fetchPastEvents();
   }, [activeTab, fetchPastEvents]);
 
+  // ── Fetch reviews ──────────────────────────────────────────────────────────
+
+  const fetchReviews = useCallback(async () => {
+    setReviewsLoading(true);
+    try {
+      const data: Review[] = await adminFetch("/api/admin/reviews");
+      setReviews(Array.isArray(data) ? data : []);
+    } catch {
+      setReviews([]);
+      toast.warning("Could not load reviews.");
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "reviews") fetchReviews();
+  }, [activeTab, fetchReviews]);
+
+
   // ── Dialog handlers ───────────────────────────────────────────────────────
 
   function openCreate() {
@@ -389,6 +450,26 @@ const [faqForm, setFaqForm] = useState({
     });
     setPastEventDialogOpen(true);
   }
+
+  // ── Review dialog handlers ────────────────────────────────────────────────
+
+  function openCreateReview() {
+    setReviewEditTarget(null);
+    setReviewForm(EMPTY_REVIEW_FORM);
+    setReviewDialogOpen(true);
+  }
+
+  function openEditReview(review: Review) {
+    setReviewEditTarget(review);
+    setReviewForm({
+      name: review.name,
+      team: review.team,
+      quote: review.quote,
+      displayOrder: review.displayOrder,
+    });
+    setReviewDialogOpen(true);
+  }
+
 
   // ── Submit ────────────────────────────────────────────────────────────────
 
@@ -627,6 +708,72 @@ async function handleFaqEdit() {
     }
   }
 
+  // ── Review submit and delete handlers ─────────────────────────────────────
+
+  async function handleReviewSubmit() {
+    if (!reviewForm.name.trim() || !reviewForm.team.trim() || !reviewForm.quote.trim()) {
+      toast.error("Name, team, and quote are required.");
+      return;
+    }
+
+    setReviewSubmitting(true);
+    try {
+      const payload = {
+        ...reviewForm,
+        name: reviewForm.name.trim(),
+        team: reviewForm.team.trim(),
+        quote: reviewForm.quote.trim(),
+        displayOrder: Number(reviewForm.displayOrder),
+      };
+
+      if (reviewEditTarget) {
+        await adminFetch(`/api/admin/reviews/${reviewEditTarget.id}`, {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+        toast.success("Review updated successfully.");
+      } else {
+        await adminFetch("/api/admin/reviews", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        toast.success("Review created successfully.");
+      }
+
+      setReviewDialogOpen(false);
+      fetchReviews();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setReviewSubmitting(false);
+    }
+  }
+
+  function confirmDeleteReview(review: Review) {
+    setReviewDeleteTarget(review);
+    setReviewDeleteOpen(true);
+  }
+
+  async function handleReviewDelete() {
+    if (!reviewDeleteTarget) return;
+    setReviewDeleting(true);
+    try {
+      await adminFetch(`/api/admin/reviews/${reviewDeleteTarget.id}`, {
+        method: "DELETE",
+      });
+      toast.success("Review deleted.");
+      setReviewDeleteOpen(false);
+      fetchReviews();
+    } catch (err: unknown) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to delete review."
+      );
+    } finally {
+      setReviewDeleting(false);
+    }
+  }
+
+
   // ── Tabs ──────────────────────────────────────────────────────────────────
 
   const tabs = [
@@ -634,6 +781,7 @@ async function handleFaqEdit() {
     { id: "sponsors", label: "Sponsors & Partners", icon: HandHeart },
     { id: "announcements", label: "Announcements", icon: MessageSquare },
     { id: "past-events", label: "Past Events", icon: Clock },
+    { id: "reviews", label: "Reviews / Testimonials", icon: Quote },
   ];
 
   // ── Prevent render until mounted (fixes hydration) ────────────────────────
@@ -662,7 +810,8 @@ async function handleFaqEdit() {
             activeTab === "sponsors" && !usingFallback ? openCreate :
               activeTab === "announcements" ? openCreateAnnouncement :
                 activeTab === "past-events" ? openCreatePastEvent :
-                  undefined
+                  activeTab === "reviews" ? openCreateReview :
+                    undefined
           }
           className="px-4 py-2 rounded-lg font-semibold transition-all shadow-[0_2px_12px_rgba(0,0,0,0.15)] flex items-center gap-2 bg-[#3a5a40] text-white hover:bg-[#344e41]"
         >
@@ -670,7 +819,8 @@ async function handleFaqEdit() {
           {activeTab === "sponsors" ? "Add Sponsor" :
             activeTab === "announcements" ? "Add Announcement" :
               activeTab === "past-events" ? "Add Past Event" :
-                "Add Content"}
+                activeTab === "reviews" ? "Add Review" :
+                  "Add Content"}
         </button>
       </div>
 
@@ -1164,6 +1314,132 @@ async function handleFaqEdit() {
             )}
           </div>
         )}
+
+        {/* ── Reviews tab ── */}
+        {activeTab === "reviews" && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2
+                className={`text-xl font-bold ${textColor}`}
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              >
+                Participant Reviews & Testimonials
+              </h2>
+              <button
+                onClick={openCreateReview}
+                className="text-sm font-medium hover:underline text-[#588157] hover:text-[#a3b18a] flex items-center gap-1"
+              >
+                <Plus className="w-3 h-3" />
+                Add Review
+              </button>
+            </div>
+
+            {/* Loading skeleton */}
+            {reviewsLoading && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[...Array(2)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`p-5 rounded-xl border animate-pulse ${itemBg}`}
+                  >
+                    <div
+                      className={`h-4 rounded w-40 mb-3 ${isDark ? "bg-white/10" : "bg-gray-200"
+                        }`}
+                    />
+                    <div
+                      className={`h-3 rounded w-full mb-2 ${isDark ? "bg-white/10" : "bg-gray-200"
+                        }`}
+                    />
+                    <div
+                      className={`h-3 rounded w-full ${isDark ? "bg-white/10" : "bg-gray-200"
+                        }`}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Reviews cards */}
+            {!reviewsLoading && reviews.length === 0 && (
+              <div
+                className={`p-8 rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center ${isDark
+                  ? "border-white/10 bg-white/5"
+                  : "border-gray-200 bg-gray-50"
+                  }`}
+              >
+                <Quote
+                  className={`w-12 h-12 mb-4 ${mutedText} opacity-50`}
+                />
+                <h3 className={`font-semibold text-lg ${textColor} mb-2`}>
+                  No Reviews Found
+                </h3>
+                <p className={`${mutedText} text-sm max-w-md mb-6`}>
+                  Add participant reviews or testimonials that will display in the "What People Say About Us" section on the homepage.
+                </p>
+                <button
+                  onClick={openCreateReview}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${isDark
+                    ? "bg-white/10 hover:bg-white/20 text-white"
+                    : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                    }`}
+                >
+                  Add First Review
+                </button>
+              </div>
+            )}
+
+            {!reviewsLoading && reviews.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {reviews.map((review) => (
+                  <div
+                    key={review.id}
+                    className={`p-5 rounded-xl border transition-all hover:border-gray-400 group flex flex-col justify-between gap-4 ${itemBg}`}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Quote className="w-5 h-5 text-[#588157] opacity-60" />
+                        <span className={`text-xs px-2 py-0.5 rounded bg-[#a3b18a]/20 text-[#588157] font-bold`}>
+                          Order: {review.displayOrder}
+                        </span>
+                      </div>
+                      <p className={`${textColor} text-sm italic mb-4 leading-relaxed`}>
+                        "{review.quote}"
+                      </p>
+                      <div>
+                        <h4 className={`font-semibold text-base ${textColor}`}>
+                          {review.name}
+                        </h4>
+                        <p className={`${mutedText} text-xs uppercase tracking-wider`}>
+                          {review.team}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 justify-end pt-2 border-t border-black/[0.05] dark:border-white/[0.05] opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => openEditReview(review)}
+                        className={`p-2 rounded-lg transition-colors ${isDark
+                          ? "hover:bg-white/10 text-gray-300"
+                          : "hover:bg-gray-200 text-gray-600"
+                          }`}
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => confirmDeleteReview(review)}
+                        className={`p-2 rounded-lg transition-colors ${isDark
+                          ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
+                          : "bg-red-50 hover:bg-red-100 text-red-600"
+                          }`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── Create / Edit Dialog ── */}
@@ -1629,6 +1905,148 @@ async function handleFaqEdit() {
             >
               {pastEventDeleting && <Loader2 className="w-3 h-3 animate-spin" />}
               {pastEventDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ── Review Create / Edit Dialog ── */}
+      <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
+        <DialogContent
+          className={`sm:max-w-md ${isDark
+            ? "bg-[#111116] border-white/10 text-white"
+            : "bg-white text-gray-900"
+            }`}
+        >
+          <DialogHeader>
+            <DialogTitle className={textColor}>
+              {reviewEditTarget ? "Edit Review" : "Add Review"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-1">
+              <label className={`text-sm font-medium ${mutedText}`}>
+                Name *
+              </label>
+              <input
+                value={reviewForm.name}
+                onChange={(e) =>
+                  setReviewForm({ ...reviewForm, name: e.target.value })
+                }
+                placeholder="Participant's Name (e.g. Ayan Rahman)"
+                className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className={`text-sm font-medium ${mutedText}`}>
+                Team / Organization *
+              </label>
+              <input
+                value={reviewForm.team}
+                onChange={(e) =>
+                  setReviewForm({ ...reviewForm, team: e.target.value })
+                }
+                placeholder="e.g. BUET Robotics Club"
+                className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className={`text-sm font-medium ${mutedText}`}>
+                Quote *
+              </label>
+              <textarea
+                value={reviewForm.quote}
+                onChange={(e) =>
+                  setReviewForm({ ...reviewForm, quote: e.target.value })
+                }
+                placeholder="What did they say about the event?"
+                rows={4}
+                className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors resize-none ${inputClass}`}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className={`text-sm font-medium ${mutedText}`}>
+                Display Order
+              </label>
+              <input
+                type="number"
+                value={reviewForm.displayOrder}
+                onChange={(e) =>
+                  setReviewForm({ ...reviewForm, displayOrder: Number(e.target.value) })
+                }
+                className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <button
+              onClick={() => setReviewDialogOpen(false)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDark
+                ? "bg-white/10 hover:bg-white/20 text-white"
+                : "bg-gray-100 hover:bg-gray-200 text-gray-900"
+                }`}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleReviewSubmit}
+              disabled={reviewSubmitting}
+              className="px-4 py-2 rounded-lg text-sm font-semibold bg-[#3a5a40] hover:bg-[#344e41] text-white transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              {reviewSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
+              {reviewSubmitting
+                ? reviewEditTarget
+                  ? "Saving..."
+                  : "Creating..."
+                : reviewEditTarget
+                  ? "Save Changes"
+                  : "Create Review"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Review Delete confirmation ── */}
+      <AlertDialog open={reviewDeleteOpen} onOpenChange={setReviewDeleteOpen}>
+        <AlertDialogContent
+          className={
+            isDark
+              ? "bg-[#111116] border-white/10 text-white"
+              : "bg-white text-gray-900"
+          }
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle className={textColor}>
+              Delete Review
+            </AlertDialogTitle>
+            <AlertDialogDescription className={mutedText}>
+              Are you sure you want to delete the review by{" "}
+              <span className="font-semibold">{reviewDeleteTarget?.name}</span>? This
+              action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className={
+                isDark
+                  ? "bg-white/10 hover:bg-white/20 text-white border-white/10"
+                  : ""
+              }
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleReviewDelete}
+              disabled={reviewDeleting}
+              className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 flex items-center gap-2"
+            >
+              {reviewDeleting && <Loader2 className="w-3 h-3 animate-spin" />}
+              {reviewDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

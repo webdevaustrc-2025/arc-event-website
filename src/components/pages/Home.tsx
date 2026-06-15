@@ -15,11 +15,13 @@ export default function Home({
   dbSponsors,
   dbFAQs,
   dbPhotos,
+  dbReviews,
 }: {
   dbSegments?: any[];
   dbSponsors?: any;
   dbFAQs?: any[];
   dbPhotos?: string[];
+  dbReviews?: any[];
 }) {
   return (
     <>
@@ -30,7 +32,7 @@ export default function Home({
       <PrizePool />
       <SponsorsCarousel />
       <Highlights dbPhotos={dbPhotos} />
-      <Testimonials />
+      <Testimonials dbTestimonials={dbReviews} />
       <CTABanner />
       <FAQ dbFAQs={dbFAQs} />
     </>

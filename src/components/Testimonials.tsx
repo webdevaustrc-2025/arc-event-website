@@ -36,9 +36,35 @@ const testimonials = [
   }
 ];
 
-const doubledTestimonials = [...testimonials, ...testimonials];
+export const Testimonials = ({ dbTestimonials }: { dbTestimonials?: any[] }) => {
+  const [items, setItems] = React.useState<any[]>([]);
 
-export const Testimonials = () => {
+  React.useEffect(() => {
+    if (dbTestimonials && dbTestimonials.length > 0) {
+      setItems(dbTestimonials);
+      return;
+    }
+
+    async function loadReviews() {
+      try {
+        const res = await fetch("/api/admin/reviews");
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.length > 0) {
+            setItems(data);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load reviews:", err);
+      }
+      setItems(testimonials);
+    }
+    loadReviews();
+  }, [dbTestimonials]);
+
+  const doubledTestimonials = [...items, ...items];
+
   return (
     <section className="py-24 sm:py-32 overflow-hidden relative">
       {/* ── Distinct testimonials atmosphere — mid-green with warm tint ── */}
@@ -140,7 +166,7 @@ export const Testimonials = () => {
 
         <motion.div
           className="flex gap-5 pl-6"
-          animate={{ x: [0, -110 * testimonials.length] }}
+          animate={{ x: [0, -110 * items.length] }}
           transition={{ duration: 44, repeat: Infinity, repeatType: 'loop', ease: 'linear' }}
         >
           {doubledTestimonials.map((test, index) => (
