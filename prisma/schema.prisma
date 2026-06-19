@@ -149,9 +149,11 @@ model Leaderboard {
   userId    Int
   points    Int
   rank      Int
-  segmentId Int?
-  Segment   Segment? @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  segmentId Int
+  Segment   Segment  @relation(fields: [segmentId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, segmentId])
 }
 
 model Setting {
