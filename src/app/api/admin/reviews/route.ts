@@ -6,6 +6,12 @@ import { reviewSchema } from "@/lib/validations/review";
 
 // GET all reviews (Public)
 export async function GET() {
+  if (!prisma.review) {
+    return NextResponse.json(
+      { message: "Reviews model is not available. Please run prisma generate." },
+      { status: 503 }
+    );
+  }
   try {
     const reviews = await prisma.review.findMany({
       orderBy: { displayOrder: "asc" },
@@ -23,6 +29,12 @@ export async function GET() {
 
 // POST create review (Admin only)
 export async function POST(request: Request) {
+  if (!prisma.review) {
+    return NextResponse.json(
+      { message: "Reviews model is not available. Please run prisma generate." },
+      { status: 503 }
+    );
+  }
   try {
     const session = await getServerSession(authOptions);
     if (!session || session.user.role !== "admin") {

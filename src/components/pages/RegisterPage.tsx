@@ -190,7 +190,13 @@ export default function RegisterPage() {
           toast.error("Auto-login failed. Please log in manually.");
           router.push("/login");
         } else {
-          router.push("/dashboard/events");
+          const sessionRes = await fetch('/api/auth/session');
+          const session = await sessionRes.json();
+          if (session?.user?.role === 'admin') {
+            router.push('/admin');
+          } else {
+            router.push("/dashboard/events");
+          }
         }
       } else {
         toast.error(data.message || "Failed to submit registration.");

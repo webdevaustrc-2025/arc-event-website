@@ -19,13 +19,19 @@ const menuItems = [
 export const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { theme, setTheme } = useTheme();
-  const { status } = useSession({
+  const { data: session, status } = useSession({
     required: true,
     onUnauthenticated() {
       window.location.href = '/login?callbackUrl=/dashboard';
     },
   });
   const isDark = theme === 'dark' || !theme;
+
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user?.role === 'admin') {
+      window.location.href = '/admin';
+    }
+  }, [session, status]);
 
   // Close sidebar on route change (mobile)
   useEffect(() => {

@@ -60,7 +60,13 @@ export default function LoginPage() {
           });
 
           if (signInRes?.ok) {
-            window.location.href = '/dashboard';
+            const sessionRes = await fetch('/api/auth/session');
+            const session = await sessionRes.json();
+            if (session?.user?.role === 'admin') {
+              window.location.href = '/admin';
+            } else {
+              window.location.href = '/dashboard';
+            }
           } else {
             setIsSignUp(false);
             setSuccess('Account created! Please sign in.');

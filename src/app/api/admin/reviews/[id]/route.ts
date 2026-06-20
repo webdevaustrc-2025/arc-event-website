@@ -9,6 +9,12 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!prisma.review) {
+    return NextResponse.json(
+      { message: "Reviews model is not available. Please run prisma generate." },
+      { status: 503 }
+    );
+  }
   try {
     const session = await getServerSession(authOptions);
     if (!session || session.user.role !== "admin") {
@@ -61,6 +67,12 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!prisma.review) {
+    return NextResponse.json(
+      { message: "Reviews model is not available. Please run prisma generate." },
+      { status: 503 }
+    );
+  }
   try {
     const session = await getServerSession(authOptions);
     if (!session || session.user.role !== "admin") {

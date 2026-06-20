@@ -173,7 +173,7 @@ export const Navbar = () => {
             </div>
 
             {isLoggedIn ? (
-              <Link to="/dashboard" className="hidden min-[1141px]:flex items-center gap-3 group relative z-10 transition-transform hover:scale-105">
+              <Link to={session?.user?.role === 'admin' ? '/admin' : '/dashboard'} className="hidden min-[1141px]:flex items-center gap-3 group relative z-10 transition-transform hover:scale-105">
                 <div className="relative w-10 h-10 rounded-full overflow-hidden border border-[#588157]/40 group-hover:border-[#588157] transition-all shadow-[0_2px_10px_rgba(0,0,0,0.2)]">
                   <img
                     src={userImage}
@@ -315,7 +315,7 @@ export const Navbar = () => {
                 {/* Login/Dashboard Button */}
                 {isLoggedIn ? (
                   <Link
-                    to="/dashboard"
+                    to={session?.user?.role === 'admin' ? '/admin' : '/dashboard'}
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-center h-[48px] rounded-xl font-bold bg-[#3a5a40] text-white hover:bg-[#344e41] transition-all gap-3 shadow-[0_2px_12px_rgba(58,90,64,0.25)] border border-[#588157]/20"
                     style={{ fontFamily: "'Space Grotesk', sans-serif" }}
@@ -328,7 +328,7 @@ export const Navbar = () => {
                         (e.target as HTMLImageElement).src = 'https://res.cloudinary.com/dxyhzgrul/image/upload/v1780398181/silver-membership-icon-default-avatar-profile-icon-membership-icon-social-media-user-image-vector-illustration_561158-4215_bdeofc.jpg';
                       }}
                     />
-                    Dashboard
+                    {session?.user?.role === 'admin' ? 'Admin Panel' : 'Dashboard'}
                   </Link>
                 ) : (
                   <Link

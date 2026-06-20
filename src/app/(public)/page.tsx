@@ -22,9 +22,11 @@ export default async function Page() {
     faqs = await prisma.fAQ.findMany({
       orderBy: { displayOrder: "asc" },
     });
-    reviews = await prisma.review.findMany({
-      orderBy: { displayOrder: "asc" },
-    });
+    if (prisma.review) {
+      reviews = await prisma.review.findMany({
+        orderBy: { displayOrder: "asc" },
+      });
+    }
   } catch (error) {
     console.error("Failed to fetch home page data from database, falling back to dummy data:", error);
   }
