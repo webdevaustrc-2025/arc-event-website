@@ -20,7 +20,7 @@ export default function SponsorsPage({ dbSponsors }: { dbSponsors?: any }) {
         </p>
       </div>
 
-      <Sponsors dbSponsors={dbSponsors} />
+      <Sponsors  />
 
       {/* Become a Sponsor CTA */}
       <section className="py-32 px-6 max-w-7xl mx-auto mt-24 border-t border-white/5 relative overflow-hidden">
