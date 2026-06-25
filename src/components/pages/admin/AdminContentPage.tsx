@@ -36,16 +36,15 @@ import {
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
-type Tier = "gold" | "silver" | "bronze";
-
 interface Sponsor {
   id: number;
   name: string;
   logoUrl: string;
-  tier: Tier;
+  category: string;  // Changed from tier
   websiteUrl?: string | null;
   displayOrder: number;
 }
+
 interface FAQ {
   id: number;
   question: string;
@@ -57,7 +56,7 @@ interface FAQ {
 interface SponsorForm {
   name: string;
   logoUrl: string;
-  tier: Tier;
+  category: string;  // Changed from tier
   websiteUrl: string;
   displayOrder: number;
 }
@@ -111,16 +110,14 @@ interface ReviewForm {
   displayOrder: number;
 }
 
-
-
-// ─── Fallback dummy data (never removed) ──────────────────────────────────────
+// ─── Fallback dummy data ──────────────────────────────────────────────────────
 
 const FALLBACK_SPONSORS: Sponsor[] = [
   {
     id: 1,
     name: "TechCorp",
     logoUrl: "",
-    tier: "gold",
+    category: "Gold Sponsor",
     websiteUrl: "https://techcorp.com",
     displayOrder: 0,
   },
@@ -128,7 +125,7 @@ const FALLBACK_SPONSORS: Sponsor[] = [
     id: 2,
     name: "InnoSystems",
     logoUrl: "",
-    tier: "silver",
+    category: "Silver Sponsor",
     websiteUrl: "https://innosystems.com",
     displayOrder: 1,
   },
@@ -136,13 +133,13 @@ const FALLBACK_SPONSORS: Sponsor[] = [
     id: 3,
     name: "CyberDynamics",
     logoUrl: "",
-    tier: "bronze",
+    category: "Bronze Sponsor",
     websiteUrl: null,
     displayOrder: 2,
   },
 ];
 
-// ─── FAQ dummy data (unchanged) ───────────────────────────────────────────────
+// ─── FAQ dummy data ───────────────────────────────────────────────────────────
 
 const faqData = [
   { id: 1, question: "What is ARC 3.0?", answer: "ARC 3.0 is the premier university robotics event...", category: "General" },
@@ -150,14 +147,12 @@ const faqData = [
   { id: 3, question: "Are there any registration fees?", answer: "Yes, early bird registration is $50...", category: "Payment" },
 ];
 
-
-
-// ─── Empty form ───────────────────────────────────────────────────────────────
+// ─── Empty form ──────────────────────────────────────────────────────────────
 
 const EMPTY_FORM: SponsorForm = {
   name: "",
   logoUrl: "",
-  tier: "gold",
+  category: "",
   websiteUrl: "",
   displayOrder: 0,
 };
@@ -184,18 +179,14 @@ const EMPTY_REVIEW_FORM: ReviewForm = {
   displayOrder: 0,
 };
 
+// ─── Category styling ─────────────────────────────────────────────────────────
 
-// ─── Tier styling ─────────────────────────────────────────────────────────────
-
-function getTierStyle(tier: Tier) {
-  switch (tier) {
-    case "gold":
-      return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
-    case "silver":
-      return "bg-gray-400/10 text-gray-400 border-gray-400/20";
-    case "bronze":
-      return "bg-orange-500/10 text-orange-400 border-orange-500/20";
-  }
+function getCategoryStyle(category: string) {
+  const lowerCategory = category.toLowerCase();
+  if (lowerCategory.includes("gold")) return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
+  if (lowerCategory.includes("silver")) return "bg-gray-400/10 text-gray-400 border-gray-400/20";
+  if (lowerCategory.includes("bronze")) return "bg-orange-500/10 text-orange-400 border-orange-500/20";
+  return "bg-[#588157]/10 text-[#588157] border-[#588157]/20";
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -203,7 +194,7 @@ function getTierStyle(tier: Tier) {
 export default function AdminContentPage() {
   const { theme } = useTheme();
 
-  // ── Fix hydration: don't render theme-dependent classes until mounted ────
+  // ── Fix hydration ──────────────────────────────────────────────────────────
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -219,19 +210,10 @@ export default function AdminContentPage() {
 
   const [activeTab, setActiveTab] = useState("faq");
 
-const [faqs, setFaqs] = useState<FAQ[]>([]);
-const [faqLoading, setFaqLoading] = useState(false);
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [faqLoading, setFaqLoading] = useState(false);
 
-const [faqDialogOpen, setFaqDialogOpen] = useState(false);
-const [faqEditTarget, setFaqEditTarget] = useState<FAQ | null>(null);
-
-const [faqForm, setFaqForm] = useState({
-  question: "",
-  answer: "",
-  displayOrder: 0,
-});
-
-  // ── Sponsor state ─────────────────────────────────────────────────────────
+  // ── Sponsor state ──────────────────────────────────────────────────────────
 
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [sponsorsLoading, setSponsorsLoading] = useState(false);
@@ -246,7 +228,7 @@ const [faqForm, setFaqForm] = useState({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // ── Announcement state ────────────────────────────────────────────────────
+  // ── Announcement state ─────────────────────────────────────────────────────
 
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [announcementsLoading, setAnnouncementsLoading] = useState(false);
@@ -260,7 +242,7 @@ const [faqForm, setFaqForm] = useState({
   const [announcementDeleteOpen, setAnnouncementDeleteOpen] = useState(false);
   const [announcementDeleting, setAnnouncementDeleting] = useState(false);
 
-  // ── Past Event state ──────────────────────────────────────────────────────
+  // ── Past Event state ───────────────────────────────────────────────────────
 
   const [pastEvents, setPastEvents] = useState<PastEventItem[]>([]);
   const [pastEventsLoading, setPastEventsLoading] = useState(false);
@@ -274,7 +256,7 @@ const [faqForm, setFaqForm] = useState({
   const [pastEventDeleteOpen, setPastEventDeleteOpen] = useState(false);
   const [pastEventDeleting, setPastEventDeleting] = useState(false);
 
-  // ── Review state ──────────────────────────────────────────────────────────
+  // ── Review state ───────────────────────────────────────────────────────────
 
   const [reviews, setReviews] = useState<Review[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
@@ -288,8 +270,7 @@ const [faqForm, setFaqForm] = useState({
   const [reviewDeleteOpen, setReviewDeleteOpen] = useState(false);
   const [reviewDeleting, setReviewDeleting] = useState(false);
 
-
-  // ── Fetch sponsors ────────────────────────────────────────────────────────
+  // ── Fetch sponsors ─────────────────────────────────────────────────────────
 
   const fetchSponsors = useCallback(async () => {
     setSponsorsLoading(true);
@@ -312,17 +293,16 @@ const [faqForm, setFaqForm] = useState({
   }, []);
 
   const fetchFaqs = useCallback(async () => {
-  setFaqLoading(true);
-
-  try {
-    const data: FAQ[] = await adminFetch("/api/admin/faqs");
-    setFaqs(data);
-  } catch {
-    toast.error("Failed to load FAQs");
-  } finally {
-    setFaqLoading(false);
-  }
-}, []);
+    setFaqLoading(true);
+    try {
+      const data: FAQ[] = await adminFetch("/api/admin/faqs");
+      setFaqs(data);
+    } catch {
+      toast.error("Failed to load FAQs");
+    } finally {
+      setFaqLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (activeTab === "faq") fetchFaqs();
@@ -334,7 +314,7 @@ const [faqForm, setFaqForm] = useState({
     }
   }, [activeTab, fetchSponsors]);
 
-  // ── Fetch announcements ───────────────────────────────────────────────────
+  // ── Fetch announcements ────────────────────────────────────────────────────
 
   const fetchAnnouncements = useCallback(async () => {
     setAnnouncementsLoading(true);
@@ -353,7 +333,7 @@ const [faqForm, setFaqForm] = useState({
     if (activeTab === "announcements") fetchAnnouncements();
   }, [activeTab, fetchAnnouncements]);
 
-  // ── Fetch past events ─────────────────────────────────────────────────────
+  // ── Fetch past events ──────────────────────────────────────────────────────
 
   const fetchPastEvents = useCallback(async () => {
     setPastEventsLoading(true);
@@ -391,8 +371,7 @@ const [faqForm, setFaqForm] = useState({
     if (activeTab === "reviews") fetchReviews();
   }, [activeTab, fetchReviews]);
 
-
-  // ── Dialog handlers ───────────────────────────────────────────────────────
+  // ── Dialog handlers ────────────────────────────────────────────────────────
 
   function openCreate() {
     setEditTarget(null);
@@ -405,7 +384,7 @@ const [faqForm, setFaqForm] = useState({
     setForm({
       name: sponsor.name,
       logoUrl: sponsor.logoUrl,
-      tier: sponsor.tier,
+      category: sponsor.category || "",
       websiteUrl: sponsor.websiteUrl ?? "",
       displayOrder: sponsor.displayOrder,
     });
@@ -432,7 +411,7 @@ const [faqForm, setFaqForm] = useState({
     setAnnouncementDialogOpen(true);
   }
 
-  // ── Past Event dialog handlers ────────────────────────────────────────────
+  // ── Past Event dialog handlers ─────────────────────────────────────────────
 
   function openCreatePastEvent() {
     setPastEventEditTarget(null);
@@ -451,7 +430,7 @@ const [faqForm, setFaqForm] = useState({
     setPastEventDialogOpen(true);
   }
 
-  // ── Review dialog handlers ────────────────────────────────────────────────
+  // ── Review dialog handlers ─────────────────────────────────────────────────
 
   function openCreateReview() {
     setReviewEditTarget(null);
@@ -470,19 +449,20 @@ const [faqForm, setFaqForm] = useState({
     setReviewDialogOpen(true);
   }
 
-
-  // ── Submit ────────────────────────────────────────────────────────────────
+  // ── Submit ─────────────────────────────────────────────────────────────────
 
   async function handleSubmit() {
-    if (!form.name.trim() || !form.logoUrl.trim()) {
-      toast.error("Name and Logo URL are required.");
+    if (!form.name.trim() || !form.logoUrl.trim() || !form.category.trim()) {
+      toast.error("Name, Logo URL, and Category are required.");
       return;
     }
 
     setSubmitting(true);
     try {
       const payload = {
-        ...form,
+        name: form.name.trim(),
+        logoUrl: form.logoUrl.trim(),
+        category: form.category.trim(),
         websiteUrl: form.websiteUrl.trim() || null,
         displayOrder: Number(form.displayOrder),
       };
@@ -510,7 +490,7 @@ const [faqForm, setFaqForm] = useState({
     }
   }
 
-  // ── Delete ────────────────────────────────────────────────────────────────
+  // ── Delete ─────────────────────────────────────────────────────────────────
 
   function confirmDelete(sponsor: Sponsor) {
     setDeleteTarget(sponsor);
@@ -535,46 +515,20 @@ const [faqForm, setFaqForm] = useState({
       setDeleting(false);
     }
   }
-async function handleFaqDelete(id: number) {
-  try {
-    await adminFetch(`/api/admin/faqs/${id}`, {
-      method: "DELETE",
-    });
 
-    toast.success("FAQ deleted.");
-
-    fetchFaqs();
-  } catch {
-    toast.error("Failed to delete FAQ");
+  async function handleFaqDelete(id: number) {
+    try {
+      await adminFetch(`/api/admin/faqs/${id}`, {
+        method: "DELETE",
+      });
+      toast.success("FAQ deleted.");
+      fetchFaqs();
+    } catch {
+      toast.error("Failed to delete FAQ");
+    }
   }
-}
 
-async function handleFaqCreate() {
-  await adminFetch("/api/admin/faqs", {
-    method: "POST",
-    body: JSON.stringify(faqForm),
-  });
-
-  toast.success("FAQ created");
-  setFaqDialogOpen(false);
-  fetchFaqs();
-}
-
-async function handleFaqEdit() {
-  if (!faqEditTarget) return;
-
-  await adminFetch(`/api/admin/faqs/${faqEditTarget.id}`, {
-    method: "PUT",
-    body: JSON.stringify(faqForm),
-  });
-
-  toast.success("FAQ updated");
-  setFaqDialogOpen(false);
-  setFaqEditTarget(null);
-  fetchFaqs();
-}
-
-  // ── Announcement submit ───────────────────────────────────────────────────
+  // ── Announcement submit ────────────────────────────────────────────────────
 
   async function handleAnnouncementSubmit() {
     if (!announcementForm.title.trim() || !announcementForm.message.trim()) {
@@ -615,7 +569,7 @@ async function handleFaqEdit() {
     }
   }
 
-  // ── Announcement delete ───────────────────────────────────────────────────
+  // ── Announcement delete ────────────────────────────────────────────────────
 
   function confirmDeleteAnnouncement(announcement: Announcement) {
     setAnnouncementDeleteTarget(announcement);
@@ -641,7 +595,7 @@ async function handleFaqEdit() {
     }
   }
 
-  // ── Past Event submit ─────────────────────────────────────────────────────
+  // ── Past Event submit ──────────────────────────────────────────────────────
 
   async function handlePastEventSubmit() {
     if (!pastEventForm.name.trim() || !pastEventForm.date || !pastEventForm.description.trim()) {
@@ -682,7 +636,7 @@ async function handleFaqEdit() {
     }
   }
 
-  // ── Past Event delete ─────────────────────────────────────────────────────
+  // ── Past Event delete ──────────────────────────────────────────────────────
 
   function confirmDeletePastEvent(event: PastEventItem) {
     setPastEventDeleteTarget(event);
@@ -708,7 +662,7 @@ async function handleFaqEdit() {
     }
   }
 
-  // ── Review submit and delete handlers ─────────────────────────────────────
+  // ── Review submit and delete handlers ──────────────────────────────────────
 
   async function handleReviewSubmit() {
     if (!reviewForm.name.trim() || !reviewForm.team.trim() || !reviewForm.quote.trim()) {
@@ -773,8 +727,7 @@ async function handleFaqEdit() {
     }
   }
 
-
-  // ── Tabs ──────────────────────────────────────────────────────────────────
+  // ── Tabs ───────────────────────────────────────────────────────────────────
 
   const tabs = [
     { id: "faq", label: "FAQ Manager", icon: HelpCircle },
@@ -784,11 +737,11 @@ async function handleFaqEdit() {
     { id: "reviews", label: "Reviews / Testimonials", icon: Quote },
   ];
 
-  // ── Prevent render until mounted (fixes hydration) ────────────────────────
+  // ── Prevent render until mounted ──────────────────────────────────────────
 
   if (!mounted) return null;
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -813,14 +766,15 @@ async function handleFaqEdit() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${activeTab === tab.id
-              ? isDark
-                ? "bg-white/10 text-white shadow-sm"
-                : "bg-gray-100 text-gray-900 shadow-sm"
-              : isDark
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${
+              activeTab === tab.id
+                ? isDark
+                  ? "bg-white/10 text-white shadow-sm"
+                  : "bg-gray-100 text-gray-900 shadow-sm"
+                : isDark
                 ? "text-gray-400 hover:text-white hover:bg-white/5"
                 : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-              }`}
+            }`}
           >
             <tab.icon className="w-4 h-4" />
             {tab.label}
@@ -830,8 +784,7 @@ async function handleFaqEdit() {
 
       {/* Tab content */}
       <div className={`p-6 rounded-2xl border ${cardBg}`}>
-
-        {/* ── FAQ tab (unchanged) ── */}
+        {/* ── FAQ tab ── */}
         {activeTab === "faq" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center mb-6">
@@ -846,7 +799,7 @@ async function handleFaqEdit() {
               </button>
             </div>
             <div className="space-y-4">
-          {faqs.map((faq) => (
+              {faqs.map((faq) => (
                 <div
                   key={faq.id}
                   className={`p-5 rounded-xl border transition-all hover:border-gray-400 group flex items-start justify-between gap-4 ${itemBg}`}
@@ -854,10 +807,11 @@ async function handleFaqEdit() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <span
-                        className={`px-2 py-0.5 rounded-md text-xs font-medium border ${isDark
-                          ? "bg-white/5 text-gray-300 border-white/10"
-                          : "bg-gray-200 text-gray-700 border-gray-300"
-                          }`}
+                        className={`px-2 py-0.5 rounded-md text-xs font-medium border ${
+                          isDark
+                            ? "bg-white/5 text-gray-300 border-white/10"
+                            : "bg-gray-200 text-gray-700 border-gray-300"
+                        }`}
                       >
                         #{faq.displayOrder}
                       </span>
@@ -868,20 +822,21 @@ async function handleFaqEdit() {
                     <p className={`${mutedText} text-sm`}>{faq.answer}</p>
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    
                     <button
-                      className={`p-2 rounded-lg transition-colors ${isDark
-                        ? "hover:bg-white/10 text-gray-300"
-                        : "hover:bg-gray-200 text-gray-600"
-                        }`}
+                      className={`p-2 rounded-lg transition-colors ${
+                        isDark
+                          ? "hover:bg-white/10 text-gray-300"
+                          : "hover:bg-gray-200 text-gray-600"
+                      }`}
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
-                      className={`p-2 rounded-lg transition-colors ${isDark
-                        ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
-                        : "bg-red-50 hover:bg-red-100 text-red-600"
-                        }`}
+                      className={`p-2 rounded-lg transition-colors ${
+                        isDark
+                          ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
+                          : "bg-red-50 hover:bg-red-100 text-red-600"
+                      }`}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -929,16 +884,19 @@ async function handleFaqEdit() {
                     className={`p-5 rounded-xl border animate-pulse ${itemBg}`}
                   >
                     <div
-                      className={`w-20 h-20 rounded-full mx-auto mb-4 ${isDark ? "bg-white/10" : "bg-gray-200"
-                        }`}
+                      className={`w-20 h-20 rounded-full mx-auto mb-4 ${
+                        isDark ? "bg-white/10" : "bg-gray-200"
+                      }`}
                     />
                     <div
-                      className={`h-4 rounded mx-auto w-24 mb-3 ${isDark ? "bg-white/10" : "bg-gray-200"
-                        }`}
+                      className={`h-4 rounded mx-auto w-24 mb-3 ${
+                        isDark ? "bg-white/10" : "bg-gray-200"
+                      }`}
                     />
                     <div
-                      className={`h-3 rounded mx-auto w-16 ${isDark ? "bg-white/10" : "bg-gray-200"
-                        }`}
+                      className={`h-3 rounded mx-auto w-16 ${
+                        isDark ? "bg-white/10" : "bg-gray-200"
+                      }`}
                     />
                   </div>
                 ))}
@@ -955,10 +913,11 @@ async function handleFaqEdit() {
                   >
                     {/* Logo */}
                     <div
-                      className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 overflow-hidden ${isDark
-                        ? "bg-white/5 border border-white/10"
-                        : "bg-gray-100 border border-gray-200"
-                        }`}
+                      className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 overflow-hidden ${
+                        isDark
+                          ? "bg-white/5 border border-white/10"
+                          : "bg-gray-100 border border-gray-200"
+                      }`}
                     >
                       {sponsor.logoUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -978,21 +937,23 @@ async function handleFaqEdit() {
 
                     <div className="flex flex-col gap-2 mt-3 items-center w-full">
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-bold border capitalize ${getTierStyle(sponsor.tier)}`}
+                        className={`px-3 py-1 rounded-full text-xs font-bold border capitalize ${getCategoryStyle(sponsor.category)}`}
                       >
-                        {sponsor.tier}
+                        {sponsor.category}
                       </span>
                       <span
-                        className={`text-sm font-medium ${isDark ? "text-gray-300" : "text-gray-600"
-                          }`}
+                        className={`text-sm font-medium ${
+                          isDark ? "text-gray-300" : "text-gray-600"
+                        }`}
                       >
                         Order: {sponsor.displayOrder}
                       </span>
                     </div>
 
                     <div
-                      className={`mt-4 pt-4 border-t w-full flex justify-between items-center ${isDark ? "border-white/10" : "border-gray-200"
-                        }`}
+                      className={`mt-4 pt-4 border-t w-full flex justify-between items-center ${
+                        isDark ? "border-white/10" : "border-gray-200"
+                      }`}
                     >
                       {sponsor.websiteUrl ? (
                         <a
@@ -1014,19 +975,21 @@ async function handleFaqEdit() {
                         <div className="flex gap-1">
                           <button
                             onClick={() => openEdit(sponsor)}
-                            className={`p-1.5 rounded-md transition-colors ${isDark
-                              ? "hover:bg-white/10"
-                              : "hover:bg-gray-200"
-                              }`}
+                            className={`p-1.5 rounded-md transition-colors ${
+                              isDark
+                                ? "hover:bg-white/10"
+                                : "hover:bg-gray-200"
+                            }`}
                           >
                             <Edit2 className="w-4 h-4 text-gray-400" />
                           </button>
                           <button
                             onClick={() => confirmDelete(sponsor)}
-                            className={`p-1.5 rounded-md transition-colors ${isDark
-                              ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
-                              : "bg-red-50 hover:bg-red-100 text-red-500"
-                              }`}
+                            className={`p-1.5 rounded-md transition-colors ${
+                              isDark
+                                ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
+                                : "bg-red-50 hover:bg-red-100 text-red-500"
+                            }`}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -1059,7 +1022,6 @@ async function handleFaqEdit() {
               </button>
             </div>
 
-            {/* Loading skeleton */}
             {announcementsLoading && (
               <div className="space-y-3">
                 {[...Array(3)].map((_, i) => (
@@ -1068,25 +1030,27 @@ async function handleFaqEdit() {
                     className={`p-5 rounded-xl border animate-pulse ${itemBg}`}
                   >
                     <div
-                      className={`h-4 rounded w-40 mb-3 ${isDark ? "bg-white/10" : "bg-gray-200"
-                        }`}
+                      className={`h-4 rounded w-40 mb-3 ${
+                        isDark ? "bg-white/10" : "bg-gray-200"
+                      }`}
                     />
                     <div
-                      className={`h-3 rounded w-full ${isDark ? "bg-white/10" : "bg-gray-200"
-                        }`}
+                      className={`h-3 rounded w-full ${
+                        isDark ? "bg-white/10" : "bg-gray-200"
+                      }`}
                     />
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Announcement cards */}
             {!announcementsLoading && announcements.length === 0 && (
               <div
-                className={`p-8 rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center ${isDark
-                  ? "border-white/10 bg-white/5"
-                  : "border-gray-200 bg-gray-50"
-                  }`}
+                className={`p-8 rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center ${
+                  isDark
+                    ? "border-white/10 bg-white/5"
+                    : "border-gray-200 bg-gray-50"
+                }`}
               >
                 <MessageSquare
                   className={`w-12 h-12 mb-4 ${mutedText} opacity-50`}
@@ -1100,10 +1064,11 @@ async function handleFaqEdit() {
                 </p>
                 <button
                   onClick={openCreateAnnouncement}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${isDark
-                    ? "bg-white/10 hover:bg-white/20 text-white"
-                    : "bg-gray-200 hover:bg-gray-300 text-gray-900"
-                    }`}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    isDark
+                      ? "bg-white/10 hover:bg-white/20 text-white"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                  }`}
                 >
                   Create Banner
                 </button>
@@ -1128,10 +1093,11 @@ async function handleFaqEdit() {
                         </h4>
                         {announcement.isNew && (
                           <span
-                            className={`px-2 py-0.5 rounded-md text-xs font-medium border ${isDark
-                              ? "bg-white/5 text-gray-300 border-white/10"
-                              : "bg-gray-200 text-gray-700 border-gray-300"
-                              }`}
+                            className={`px-2 py-0.5 rounded-md text-xs font-medium border ${
+                              isDark
+                                ? "bg-white/5 text-gray-300 border-white/10"
+                                : "bg-gray-200 text-gray-700 border-gray-300"
+                            }`}
                           >
                             New
                           </span>
@@ -1147,19 +1113,21 @@ async function handleFaqEdit() {
                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => openEditAnnouncement(announcement)}
-                        className={`p-2 rounded-lg transition-colors ${isDark
-                          ? "hover:bg-white/10 text-gray-300"
-                          : "hover:bg-gray-200 text-gray-600"
-                          }`}
+                        className={`p-2 rounded-lg transition-colors ${
+                          isDark
+                            ? "hover:bg-white/10 text-gray-300"
+                            : "hover:bg-gray-200 text-gray-600"
+                        }`}
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => confirmDeleteAnnouncement(announcement)}
-                        className={`p-2 rounded-lg transition-colors ${isDark
-                          ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
-                          : "bg-red-50 hover:bg-red-100 text-red-600"
-                          }`}
+                        className={`p-2 rounded-lg transition-colors ${
+                          isDark
+                            ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
+                            : "bg-red-50 hover:bg-red-100 text-red-600"
+                        }`}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1190,7 +1158,6 @@ async function handleFaqEdit() {
               </button>
             </div>
 
-            {/* Loading skeleton */}
             {pastEventsLoading && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[...Array(2)].map((_, i) => (
@@ -1199,29 +1166,32 @@ async function handleFaqEdit() {
                     className={`p-5 rounded-xl border animate-pulse ${itemBg}`}
                   >
                     <div
-                      className={`h-40 rounded-lg w-full mb-4 ${isDark ? "bg-white/10" : "bg-gray-200"
-                        }`}
+                      className={`h-40 rounded-lg w-full mb-4 ${
+                        isDark ? "bg-white/10" : "bg-gray-200"
+                      }`}
                     />
                     <div
-                      className={`h-4 rounded w-40 mb-3 ${isDark ? "bg-white/10" : "bg-gray-200"
-                        }`}
+                      className={`h-4 rounded w-40 mb-3 ${
+                        isDark ? "bg-white/10" : "bg-gray-200"
+                      }`}
                     />
                     <div
-                      className={`h-3 rounded w-full ${isDark ? "bg-white/10" : "bg-gray-200"
-                        }`}
+                      className={`h-3 rounded w-full ${
+                        isDark ? "bg-white/10" : "bg-gray-200"
+                      }`}
                     />
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Past Event cards */}
             {!pastEventsLoading && pastEvents.length === 0 && (
               <div
-                className={`p-8 rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center ${isDark
-                  ? "border-white/10 bg-white/5"
-                  : "border-gray-200 bg-gray-50"
-                  }`}
+                className={`p-8 rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center ${
+                  isDark
+                    ? "border-white/10 bg-white/5"
+                    : "border-gray-200 bg-gray-50"
+                }`}
               >
                 <Clock
                   className={`w-12 h-12 mb-4 ${mutedText} opacity-50`}
@@ -1234,10 +1204,11 @@ async function handleFaqEdit() {
                 </p>
                 <button
                   onClick={openCreatePastEvent}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${isDark
-                    ? "bg-white/10 hover:bg-white/20 text-white"
-                    : "bg-gray-200 hover:bg-gray-300 text-gray-900"
-                    }`}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    isDark
+                      ? "bg-white/10 hover:bg-white/20 text-white"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                  }`}
                 >
                   Add First Event
                 </button>
@@ -1274,19 +1245,21 @@ async function handleFaqEdit() {
                     <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => openEditPastEvent(event)}
-                        className={`p-2 rounded-lg transition-colors ${isDark
-                          ? "hover:bg-white/10 text-gray-300"
-                          : "hover:bg-gray-200 text-gray-600"
-                          }`}
+                        className={`p-2 rounded-lg transition-colors ${
+                          isDark
+                            ? "hover:bg-white/10 text-gray-300"
+                            : "hover:bg-gray-200 text-gray-600"
+                        }`}
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => confirmDeletePastEvent(event)}
-                        className={`p-2 rounded-lg transition-colors ${isDark
-                          ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
-                          : "bg-red-50 hover:bg-red-100 text-red-600"
-                          }`}
+                        className={`p-2 rounded-lg transition-colors ${
+                          isDark
+                            ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
+                            : "bg-red-50 hover:bg-red-100 text-red-600"
+                        }`}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1317,7 +1290,6 @@ async function handleFaqEdit() {
               </button>
             </div>
 
-            {/* Loading skeleton */}
             {reviewsLoading && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[...Array(2)].map((_, i) => (
@@ -1326,29 +1298,32 @@ async function handleFaqEdit() {
                     className={`p-5 rounded-xl border animate-pulse ${itemBg}`}
                   >
                     <div
-                      className={`h-4 rounded w-40 mb-3 ${isDark ? "bg-white/10" : "bg-gray-200"
-                        }`}
+                      className={`h-4 rounded w-40 mb-3 ${
+                        isDark ? "bg-white/10" : "bg-gray-200"
+                      }`}
                     />
                     <div
-                      className={`h-3 rounded w-full mb-2 ${isDark ? "bg-white/10" : "bg-gray-200"
-                        }`}
+                      className={`h-3 rounded w-full mb-2 ${
+                        isDark ? "bg-white/10" : "bg-gray-200"
+                      }`}
                     />
                     <div
-                      className={`h-3 rounded w-full ${isDark ? "bg-white/10" : "bg-gray-200"
-                        }`}
+                      className={`h-3 rounded w-full ${
+                        isDark ? "bg-white/10" : "bg-gray-200"
+                      }`}
                     />
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Reviews cards */}
             {!reviewsLoading && reviews.length === 0 && (
               <div
-                className={`p-8 rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center ${isDark
-                  ? "border-white/10 bg-white/5"
-                  : "border-gray-200 bg-gray-50"
-                  }`}
+                className={`p-8 rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center ${
+                  isDark
+                    ? "border-white/10 bg-white/5"
+                    : "border-gray-200 bg-gray-50"
+                }`}
               >
                 <Quote
                   className={`w-12 h-12 mb-4 ${mutedText} opacity-50`}
@@ -1361,10 +1336,11 @@ async function handleFaqEdit() {
                 </p>
                 <button
                   onClick={openCreateReview}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${isDark
-                    ? "bg-white/10 hover:bg-white/20 text-white"
-                    : "bg-gray-200 hover:bg-gray-300 text-gray-900"
-                    }`}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    isDark
+                      ? "bg-white/10 hover:bg-white/20 text-white"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                  }`}
                 >
                   Add First Review
                 </button>
@@ -1400,19 +1376,21 @@ async function handleFaqEdit() {
                     <div className="flex gap-2 justify-end pt-2 border-t border-black/[0.05] dark:border-white/[0.05] opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => openEditReview(review)}
-                        className={`p-2 rounded-lg transition-colors ${isDark
-                          ? "hover:bg-white/10 text-gray-300"
-                          : "hover:bg-gray-200 text-gray-600"
-                          }`}
+                        className={`p-2 rounded-lg transition-colors ${
+                          isDark
+                            ? "hover:bg-white/10 text-gray-300"
+                            : "hover:bg-gray-200 text-gray-600"
+                        }`}
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => confirmDeleteReview(review)}
-                        className={`p-2 rounded-lg transition-colors ${isDark
-                          ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
-                          : "bg-red-50 hover:bg-red-100 text-red-600"
-                          }`}
+                        className={`p-2 rounded-lg transition-colors ${
+                          isDark
+                            ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
+                            : "bg-red-50 hover:bg-red-100 text-red-600"
+                        }`}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1425,13 +1403,14 @@ async function handleFaqEdit() {
         )}
       </div>
 
-      {/* ── Create / Edit Dialog ── */}
+      {/* ── Create / Edit Sponsor Dialog ── */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent
-          className={`sm:max-w-md ${isDark
-            ? "bg-[#111116] border-white/10 text-white"
-            : "bg-white text-gray-900"
-            }`}
+          className={`sm:max-w-md ${
+            isDark
+              ? "bg-[#111116] border-white/10 text-white"
+              : "bg-white text-gray-900"
+          }`}
         >
           <DialogHeader>
             <DialogTitle className={textColor}>
@@ -1458,9 +1437,7 @@ async function handleFaqEdit() {
               </label>
               <input
                 value={form.logoUrl}
-                onChange={(e) =>
-                  setForm({ ...form, logoUrl: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, logoUrl: e.target.value })}
                 placeholder="https://..."
                 className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
               />
@@ -1468,19 +1445,17 @@ async function handleFaqEdit() {
 
             <div className="space-y-1">
               <label className={`text-sm font-medium ${mutedText}`}>
-                Tier *
+                Category *
               </label>
-              <select
-                value={form.tier}
-                onChange={(e) =>
-                  setForm({ ...form, tier: e.target.value as Tier })
-                }
+              <input
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                placeholder="e.g. Gold Sponsor, Community Partner, Food Partner"
                 className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
-              >
-                <option value="gold">Gold</option>
-                <option value="silver">Silver</option>
-                <option value="bronze">Bronze</option>
-              </select>
+              />
+              <p className={`text-xs ${mutedText} mt-1 opacity-60`}>
+                Enter the sponsor category (e.g., Gold Sponsor, Community Partner, Food Partner)
+              </p>
             </div>
 
             <div className="space-y-1">
@@ -1489,9 +1464,7 @@ async function handleFaqEdit() {
               </label>
               <input
                 value={form.websiteUrl}
-                onChange={(e) =>
-                  setForm({ ...form, websiteUrl: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, websiteUrl: e.target.value })}
                 placeholder="https://..."
                 className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
               />
@@ -1504,9 +1477,7 @@ async function handleFaqEdit() {
               <input
                 type="number"
                 value={form.displayOrder}
-                onChange={(e) =>
-                  setForm({ ...form, displayOrder: Number(e.target.value) })
-                }
+                onChange={(e) => setForm({ ...form, displayOrder: Number(e.target.value) })}
                 className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
               />
             </div>
@@ -1515,10 +1486,11 @@ async function handleFaqEdit() {
           <DialogFooter className="gap-2">
             <button
               onClick={() => setDialogOpen(false)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDark
-                ? "bg-white/10 hover:bg-white/20 text-white"
-                : "bg-gray-100 hover:bg-gray-200 text-gray-900"
-                }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isDark
+                  ? "bg-white/10 hover:bg-white/20 text-white"
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-900"
+              }`}
             >
               Cancel
             </button>
@@ -1533,14 +1505,14 @@ async function handleFaqEdit() {
                   ? "Saving..."
                   : "Creating..."
                 : editTarget
-                  ? "Save Changes"
-                  : "Create Sponsor"}
+                ? "Save Changes"
+                : "Create Sponsor"}
             </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* ── Delete confirmation (sponsors) ── */}
+      {/* ── Delete confirmation ── */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent
           className={
@@ -1584,10 +1556,11 @@ async function handleFaqEdit() {
       {/* ── Announcement Create / Edit Dialog ── */}
       <Dialog open={announcementDialogOpen} onOpenChange={setAnnouncementDialogOpen}>
         <DialogContent
-          className={`sm:max-w-md ${isDark
-            ? "bg-[#111116] border-white/10 text-white"
-            : "bg-white text-gray-900"
-            }`}
+          className={`sm:max-w-md ${
+            isDark
+              ? "bg-[#111116] border-white/10 text-white"
+              : "bg-white text-gray-900"
+          }`}
         >
           <DialogHeader>
             <DialogTitle className={textColor}>
@@ -1602,9 +1575,7 @@ async function handleFaqEdit() {
               </label>
               <input
                 value={announcementForm.title}
-                onChange={(e) =>
-                  setAnnouncementForm({ ...announcementForm, title: e.target.value })
-                }
+                onChange={(e) => setAnnouncementForm({ ...announcementForm, title: e.target.value })}
                 placeholder="e.g. Registration is now open!"
                 className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
               />
@@ -1616,9 +1587,7 @@ async function handleFaqEdit() {
               </label>
               <textarea
                 value={announcementForm.message}
-                onChange={(e) =>
-                  setAnnouncementForm({ ...announcementForm, message: e.target.value })
-                }
+                onChange={(e) => setAnnouncementForm({ ...announcementForm, message: e.target.value })}
                 placeholder="e.g. Team registrations are now open until June 10."
                 rows={3}
                 className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors resize-none ${inputClass}`}
@@ -1631,9 +1600,7 @@ async function handleFaqEdit() {
               </label>
               <input
                 value={announcementForm.icon}
-                onChange={(e) =>
-                  setAnnouncementForm({ ...announcementForm, icon: e.target.value })
-                }
+                onChange={(e) => setAnnouncementForm({ ...announcementForm, icon: e.target.value })}
                 placeholder="e.g. Bell, Info, AlertCircle"
                 className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
               />
@@ -1647,16 +1614,12 @@ async function handleFaqEdit() {
                 <input
                   type="color"
                   value={announcementForm.color}
-                  onChange={(e) =>
-                    setAnnouncementForm({ ...announcementForm, color: e.target.value })
-                  }
+                  onChange={(e) => setAnnouncementForm({ ...announcementForm, color: e.target.value })}
                   className="w-10 h-9 rounded cursor-pointer border-0 bg-transparent p-0"
                 />
                 <input
                   value={announcementForm.color}
-                  onChange={(e) =>
-                    setAnnouncementForm({ ...announcementForm, color: e.target.value })
-                  }
+                  onChange={(e) => setAnnouncementForm({ ...announcementForm, color: e.target.value })}
                   placeholder="#588157"
                   className={`flex-1 px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
                 />
@@ -1668,9 +1631,7 @@ async function handleFaqEdit() {
                 type="checkbox"
                 id="announcement-isnew"
                 checked={announcementForm.isNew}
-                onChange={(e) =>
-                  setAnnouncementForm({ ...announcementForm, isNew: e.target.checked })
-                }
+                onChange={(e) => setAnnouncementForm({ ...announcementForm, isNew: e.target.checked })}
                 className="w-4 h-4 accent-[#588157] cursor-pointer"
               />
               <label
@@ -1685,10 +1646,11 @@ async function handleFaqEdit() {
           <DialogFooter className="gap-2">
             <button
               onClick={() => setAnnouncementDialogOpen(false)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDark
-                ? "bg-white/10 hover:bg-white/20 text-white"
-                : "bg-gray-100 hover:bg-gray-200 text-gray-900"
-                }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isDark
+                  ? "bg-white/10 hover:bg-white/20 text-white"
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-900"
+              }`}
             >
               Cancel
             </button>
@@ -1703,8 +1665,8 @@ async function handleFaqEdit() {
                   ? "Saving..."
                   : "Creating..."
                 : announcementEditTarget
-                  ? "Save Changes"
-                  : "Create Announcement"}
+                ? "Save Changes"
+                : "Create Announcement"}
             </button>
           </DialogFooter>
         </DialogContent>
@@ -1754,10 +1716,11 @@ async function handleFaqEdit() {
       {/* ── Past Event Create / Edit Dialog ── */}
       <Dialog open={pastEventDialogOpen} onOpenChange={setPastEventDialogOpen}>
         <DialogContent
-          className={`sm:max-w-md ${isDark
-            ? "bg-[#111116] border-white/10 text-white"
-            : "bg-white text-gray-900"
-            }`}
+          className={`sm:max-w-md ${
+            isDark
+              ? "bg-[#111116] border-white/10 text-white"
+              : "bg-white text-gray-900"
+          }`}
         >
           <DialogHeader>
             <DialogTitle className={textColor}>
@@ -1772,9 +1735,7 @@ async function handleFaqEdit() {
               </label>
               <input
                 value={pastEventForm.name}
-                onChange={(e) =>
-                  setPastEventForm({ ...pastEventForm, name: e.target.value })
-                }
+                onChange={(e) => setPastEventForm({ ...pastEventForm, name: e.target.value })}
                 placeholder="e.g. ARC 3.0 2024"
                 className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
               />
@@ -1787,9 +1748,7 @@ async function handleFaqEdit() {
               <input
                 type="date"
                 value={pastEventForm.date}
-                onChange={(e) =>
-                  setPastEventForm({ ...pastEventForm, date: e.target.value })
-                }
+                onChange={(e) => setPastEventForm({ ...pastEventForm, date: e.target.value })}
                 className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
               />
             </div>
@@ -1800,9 +1759,7 @@ async function handleFaqEdit() {
               </label>
               <textarea
                 value={pastEventForm.description}
-                onChange={(e) =>
-                  setPastEventForm({ ...pastEventForm, description: e.target.value })
-                }
+                onChange={(e) => setPastEventForm({ ...pastEventForm, description: e.target.value })}
                 placeholder="Briefly describe the event highlights..."
                 rows={3}
                 className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors resize-none ${inputClass}`}
@@ -1815,9 +1772,7 @@ async function handleFaqEdit() {
               </label>
               <input
                 value={pastEventForm.imageUrl}
-                onChange={(e) =>
-                  setPastEventForm({ ...pastEventForm, imageUrl: e.target.value })
-                }
+                onChange={(e) => setPastEventForm({ ...pastEventForm, imageUrl: e.target.value })}
                 placeholder="https://..."
                 className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
               />
@@ -1827,10 +1782,11 @@ async function handleFaqEdit() {
           <DialogFooter className="gap-2">
             <button
               onClick={() => setPastEventDialogOpen(false)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDark
-                ? "bg-white/10 hover:bg-white/20 text-white"
-                : "bg-gray-100 hover:bg-gray-200 text-gray-900"
-                }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isDark
+                  ? "bg-white/10 hover:bg-white/20 text-white"
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-900"
+              }`}
             >
               Cancel
             </button>
@@ -1845,8 +1801,8 @@ async function handleFaqEdit() {
                   ? "Saving..."
                   : "Creating..."
                 : pastEventEditTarget
-                  ? "Save Changes"
-                  : "Create Event"}
+                ? "Save Changes"
+                : "Create Event"}
             </button>
           </DialogFooter>
         </DialogContent>
@@ -1896,10 +1852,11 @@ async function handleFaqEdit() {
       {/* ── Review Create / Edit Dialog ── */}
       <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
         <DialogContent
-          className={`sm:max-w-md ${isDark
-            ? "bg-[#111116] border-white/10 text-white"
-            : "bg-white text-gray-900"
-            }`}
+          className={`sm:max-w-md ${
+            isDark
+              ? "bg-[#111116] border-white/10 text-white"
+              : "bg-white text-gray-900"
+          }`}
         >
           <DialogHeader>
             <DialogTitle className={textColor}>
@@ -1914,9 +1871,7 @@ async function handleFaqEdit() {
               </label>
               <input
                 value={reviewForm.name}
-                onChange={(e) =>
-                  setReviewForm({ ...reviewForm, name: e.target.value })
-                }
+                onChange={(e) => setReviewForm({ ...reviewForm, name: e.target.value })}
                 placeholder="Participant's Name (e.g. Ayan Rahman)"
                 className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
               />
@@ -1928,9 +1883,7 @@ async function handleFaqEdit() {
               </label>
               <input
                 value={reviewForm.team}
-                onChange={(e) =>
-                  setReviewForm({ ...reviewForm, team: e.target.value })
-                }
+                onChange={(e) => setReviewForm({ ...reviewForm, team: e.target.value })}
                 placeholder="e.g. BUET Robotics Club"
                 className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
               />
@@ -1942,9 +1895,7 @@ async function handleFaqEdit() {
               </label>
               <textarea
                 value={reviewForm.quote}
-                onChange={(e) =>
-                  setReviewForm({ ...reviewForm, quote: e.target.value })
-                }
+                onChange={(e) => setReviewForm({ ...reviewForm, quote: e.target.value })}
                 placeholder="What did they say about the event?"
                 rows={4}
                 className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors resize-none ${inputClass}`}
@@ -1958,9 +1909,7 @@ async function handleFaqEdit() {
               <input
                 type="number"
                 value={reviewForm.displayOrder}
-                onChange={(e) =>
-                  setReviewForm({ ...reviewForm, displayOrder: Number(e.target.value) })
-                }
+                onChange={(e) => setReviewForm({ ...reviewForm, displayOrder: Number(e.target.value) })}
                 className={`w-full px-3 py-2 rounded-lg border text-sm outline-none transition-colors ${inputClass}`}
               />
             </div>
@@ -1969,10 +1918,11 @@ async function handleFaqEdit() {
           <DialogFooter className="gap-2">
             <button
               onClick={() => setReviewDialogOpen(false)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDark
-                ? "bg-white/10 hover:bg-white/20 text-white"
-                : "bg-gray-100 hover:bg-gray-200 text-gray-900"
-                }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isDark
+                  ? "bg-white/10 hover:bg-white/20 text-white"
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-900"
+              }`}
             >
               Cancel
             </button>
@@ -1987,8 +1937,8 @@ async function handleFaqEdit() {
                   ? "Saving..."
                   : "Creating..."
                 : reviewEditTarget
-                  ? "Save Changes"
-                  : "Create Review"}
+                ? "Save Changes"
+                : "Create Review"}
             </button>
           </DialogFooter>
         </DialogContent>

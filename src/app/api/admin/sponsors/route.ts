@@ -13,7 +13,7 @@ export async function GET() {
     }
 
     const sponsors = await prisma.sponsor.findMany({
-      orderBy: [{ tier: "asc" }, { displayOrder: "asc" }],
+      orderBy: [{ displayOrder: "asc" }],
     });
 
     return NextResponse.json(sponsors);
@@ -35,9 +35,12 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    console.log("Received body:", body); // Debug log
+
     const result = sponsorSchema.safeParse(body);
 
     if (!result.success) {
+      console.log("Validation errors:", result.error.errors); // Debug log
       return NextResponse.json(
         { message: result.error.errors[0].message },
         { status: 400 }
@@ -45,7 +48,13 @@ export async function POST(request: Request) {
     }
 
     const sponsor = await prisma.sponsor.create({
-      data: result.data,
+      data: {
+        name: result.data.name,
+        logoUrl: result.data.logoUrl,
+        category: result.data.category,
+        websiteUrl: result.data.websiteUrl || null,
+        displayOrder: result.data.displayOrder,
+      },
     });
 
     return NextResponse.json(sponsor, { status: 201 });

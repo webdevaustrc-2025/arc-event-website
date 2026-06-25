@@ -111,12 +111,14 @@ model Schedule {
 }
 
 model Sponsor {
-  id           Int     @id @default(autoincrement())
+  id           Int      @id @default(autoincrement())
   name         String
   logoUrl      String
-  tier         String
+  category     String   @default("Gold Sponsor")
   websiteUrl   String?
-  displayOrder Int     @default(0)
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
 }
 
 model FAQ {
@@ -149,11 +151,12 @@ model Leaderboard {
   userId    Int
   points    Int
   rank      Int
-  segmentId Int
-  Segment   Segment  @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  segmentId Int?     // Made optional
+  Segment   Segment? @relation(fields: [segmentId], references: [id], onDelete: Cascade)  // Made optional
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, segmentId])
+  // Removed the unique constraint because segmentId is optional
+  // @@unique([userId, segmentId])
 }
 
 model Setting {
