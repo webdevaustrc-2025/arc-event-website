@@ -7,13 +7,7 @@ export async function GET() {
       orderBy: [{ displayOrder: "asc" }],
     });
 
-    const grouped = {
-      gold: sponsors.filter((s) => s.tier === "gold"),
-      silver: sponsors.filter((s) => s.tier === "silver"),
-      bronze: sponsors.filter((s) => s.tier === "bronze"),
-    };
-
-    return NextResponse.json(grouped);
+    return NextResponse.json(sponsors);
   } catch (error) {
     console.error("Failed to fetch public sponsors:", error);
     return NextResponse.json(
