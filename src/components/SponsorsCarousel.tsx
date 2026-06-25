@@ -2,25 +2,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Link } from '@/lib/router-compat';
 
 interface Sponsor {
   id: number;
   name: string;
   logoUrl: string;
-  tier: string;
+  category: string;
   websiteUrl: string | null;
   displayOrder: number;
 }
 
 // ─── FALLBACK DUMMY DATA ───
 const FALLBACK_SPONSORS: Sponsor[] = [
-  { id: 1, name: 'Vercel', logoUrl: '', tier: 'gold', websiteUrl: 'https://vercel.com', displayOrder: 0 },
-  { id: 2, name: 'Logitech', logoUrl: '', tier: 'gold', websiteUrl: 'https://logitech.com', displayOrder: 1 },
-  { id: 3, name: 'Notion', logoUrl: '', tier: 'silver', websiteUrl: 'https://notion.com', displayOrder: 2 },
-  { id: 4, name: 'Figma', logoUrl: '', tier: 'silver', websiteUrl: 'https://figma.com', displayOrder: 3 },
-  { id: 5, name: 'Stripe', logoUrl: '', tier: 'bronze', websiteUrl: 'https://stripe.com', displayOrder: 4 },
-  { id: 6, name: 'GitHub', logoUrl: '', tier: 'bronze', websiteUrl: 'https://github.com', displayOrder: 5 },
+  { id: 1, name: 'Vercel', logoUrl: '', category: 'Gold Sponsor', websiteUrl: 'https://vercel.com', displayOrder: 0 },
+  { id: 2, name: 'Logitech', logoUrl: '', category: 'Gold Sponsor', websiteUrl: 'https://logitech.com', displayOrder: 1 },
+  { id: 3, name: 'Notion', logoUrl: '', category: 'Silver Sponsor', websiteUrl: 'https://notion.com', displayOrder: 2 },
+  { id: 4, name: 'Figma', logoUrl: '', category: 'Silver Sponsor', websiteUrl: 'https://figma.com', displayOrder: 3 },
+  { id: 5, name: 'Stripe', logoUrl: '', category: 'Bronze Sponsor', websiteUrl: 'https://stripe.com', displayOrder: 4 },
+  { id: 6, name: 'GitHub', logoUrl: '', category: 'Bronze Sponsor', websiteUrl: 'https://github.com', displayOrder: 5 },
 ];
 
 export function SponsorsCarousel() {
@@ -34,24 +33,22 @@ export function SponsorsCarousel() {
   useEffect(() => {
     async function fetchSponsors() {
       try {
-        const response = await fetch('/api/public/sponsors');
-        if (response.ok) {
-          const data = await response.json();
-          const allSponsors = [
-            ...(data.gold || []),
-            ...(data.silver || []),
-            ...(data.bronze || []),
-          ];
-          if (allSponsors.length > 0) {
-            setSponsors(allSponsors);
-          } else {
-            setSponsors(FALLBACK_SPONSORS);
-          }
+        console.log("Fetching sponsors for carousel...");
+        const response = await fetch("/api/public/sponsors");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log("Carousel data received:", data);
+        
+        if (data && data.length > 0) {
+          setSponsors(data);
         } else {
+          console.log("No sponsors in database, using fallback data");
           setSponsors(FALLBACK_SPONSORS);
         }
       } catch (error) {
-        console.error('Failed to fetch sponsors:', error);
+        console.error("Error fetching sponsors for carousel:", error);
         setSponsors(FALLBACK_SPONSORS);
       } finally {
         setLoading(false);
@@ -108,26 +105,15 @@ export function SponsorsCarousel() {
     return (
       <section className="w-full py-20 relative">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
+          <div className="text-center mb-12">
             <div className="flex items-center gap-4 justify-center mb-5">
               <div className="h-px w-10 bg-[#588157] opacity-70" />
               <span className="text-[#588157] text-[11px] tracking-[0.18em] font-medium uppercase">/ Our Partners</span>
               <div className="h-px w-10 bg-[#588157] opacity-70" />
             </div>
-            <h2
-              className="font-bold mb-4"
-              style={{
-                color: 'var(--text-heading)',
-                fontFamily: "'Space Grotesk', sans-serif",
-                fontSize: 'clamp(36px, 6vw, 64px)',
-                letterSpacing: '-0.02em',
-              }}
-            >
+            <h2 className="font-bold mb-4 text-white" style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 'clamp(36px, 6vw, 64px)' }}>
               Our Sponsors
             </h2>
-            <p className="text-lg max-w-[560px] mx-auto" style={{ color: 'var(--text-body)' }}>
-              Grateful for the support of our valued sponsors who make our initiatives possible.
-            </p>
           </div>
           <div className="flex items-center justify-center h-48 text-gray-400">
             Loading sponsors...
@@ -141,18 +127,8 @@ export function SponsorsCarousel() {
     return null;
   }
 
-  const getTierColor = (tier: string) => {
-    switch (tier?.toLowerCase()) {
-      case 'gold': return '#eab308';
-      case 'silver': return '#9ca3af';
-      case 'bronze': return '#f97316';
-      default: return '#588157';
-    }
-  };
-
   return (
     <section className="w-full py-20 relative overflow-hidden">
-      {/* Background - matching segments style */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute inset-0" style={{ background: 'var(--section-gradient-base)' }} />
         
@@ -208,7 +184,7 @@ export function SponsorsCarousel() {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Title Area - Exactly matching segments style */}
+        {/* Title Area */}
         <div className="text-center mb-20">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
@@ -222,9 +198,8 @@ export function SponsorsCarousel() {
               <div className="h-px w-10 bg-[#588157] opacity-70" />
             </div>
             <h2
-              className="font-bold mb-4"
+              className="font-bold mb-4 text-white"
               style={{
-                color: 'var(--text-heading)',
                 fontFamily: "'Space Grotesk', sans-serif",
                 fontSize: 'clamp(36px, 6vw, 64px)',
                 letterSpacing: '-0.02em',
@@ -232,7 +207,7 @@ export function SponsorsCarousel() {
             >
               Our Sponsors
             </h2>
-            <p className="text-lg max-w-[560px] mx-auto" style={{ color: 'var(--text-body)' }}>
+            <p className="text-lg max-w-[560px] mx-auto text-gray-400">
               Grateful for the support of our valued sponsors who make our initiatives possible.
             </p>
           </motion.div>
@@ -304,12 +279,9 @@ export function SponsorsCarousel() {
                         <h3 className="text-white font-semibold text-lg mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                           {sponsor.name}
                         </h3>
-                        {sponsor.tier && (
-                          <span 
-                            className="text-xs font-medium uppercase tracking-wider"
-                            style={{ color: getTierColor(sponsor.tier) }}
-                          >
-                            {sponsor.tier} Sponsor
+                        {sponsor.category && (
+                          <span className="text-xs font-medium text-[#588157] uppercase tracking-wider">
+                            {sponsor.category}
                           </span>
                         )}
                       </div>
@@ -330,8 +302,8 @@ export function SponsorsCarousel() {
 
         {/* View All Button */}
         <div className="flex justify-center mt-12 relative z-10">
-          <Link
-            to="/sponsors"
+          <a
+            href="/sponsors"
             className="px-8 py-4 rounded-full font-bold transition-all hover:scale-105 hover:brightness-110"
             style={{
               background: 'var(--primary)',
@@ -343,7 +315,7 @@ export function SponsorsCarousel() {
             }}
           >
             View All Sponsors
-          </Link>
+          </a>
         </div>
       </div>
     </section>

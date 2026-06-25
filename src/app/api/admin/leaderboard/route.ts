@@ -164,24 +164,36 @@ export async function POST(req: Request) {
           }
         }
 
-        await tx.leaderboard.upsert({
+        // SIMPLIFIED: Use findFirst to check if entry exists
+        const existing = await tx.leaderboard.findFirst({
           where: {
-            userId_segmentId: {
-              userId,
-              segmentId: parsedSegmentId,
-            },
-          },
-          update: {
-            points,
-            rank: currentRank,
-          },
-          create: {
-            userId,
+            userId: userId,
             segmentId: parsedSegmentId,
-            points,
-            rank: currentRank,
           },
         });
+
+        if (existing) {
+          // Update existing entry
+          await tx.leaderboard.update({
+            where: {
+              id: existing.id,
+            },
+            data: {
+              points,
+              rank: currentRank,
+            },
+          });
+        } else {
+          // Create new entry
+          await tx.leaderboard.create({
+            data: {
+              userId,
+              segmentId: parsedSegmentId,
+              points,
+              rank: currentRank,
+            },
+          });
+        }
       }
     });
 
