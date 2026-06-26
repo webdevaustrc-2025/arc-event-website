@@ -14,12 +14,12 @@ model User {
   passwordHash  String?
   role          String         @default("user")
   avatarUrl     String?
-  phone         String?
-  university    String?
-  department    String?
-  studentId     String?
   createdAt     DateTime       @default(now())
   emailVerified DateTime?
+  department    String?
+  phone         String?
+  studentId     String?
+  university    String?
   accounts      Account[]
   certificates  Certificate[]
   leaderboard   Leaderboard[]
@@ -114,9 +114,9 @@ model Sponsor {
   id           Int      @id @default(autoincrement())
   name         String
   logoUrl      String
-  category     String   @default("Gold Sponsor")
   websiteUrl   String?
   displayOrder Int      @default(0)
+  category     String   @default("Gold Sponsor")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @default(now()) @updatedAt
 }
@@ -151,12 +151,9 @@ model Leaderboard {
   userId    Int
   points    Int
   rank      Int
-  segmentId Int?     // Made optional
-  Segment   Segment? @relation(fields: [segmentId], references: [id], onDelete: Cascade)  // Made optional
+  segmentId Int?
+  Segment   Segment? @relation(fields: [segmentId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Removed the unique constraint because segmentId is optional
-  // @@unique([userId, segmentId])
 }
 
 model Setting {
@@ -191,4 +188,63 @@ model Review {
   quote        String
   displayOrder Int      @default(0)
   createdAt    DateTime @default(now())
+}
+
+model AboutHero {
+  id          Int      @id @default(autoincrement())
+  heading     String
+  description String
+  imageUrl    String?
+  updatedAt   DateTime @updatedAt
+}
+
+model AboutAustrc {
+  id        Int      @id @default(autoincrement())
+  title     String   @default("Where Bangladesh's Best Engineers Compete.")
+  content   String
+  imageUrl  String?
+  updatedAt DateTime @updatedAt
+}
+
+model AboutMissionVision {
+  id                 Int      @id @default(autoincrement())
+  missionTitle       String   @default("Our Mission")
+  missionDescription String
+  visionTitle        String   @default("Our Vision")
+  visionDescription  String
+  updatedAt          DateTime @updatedAt
+}
+
+model AboutGallery {
+  id           Int      @id @default(autoincrement())
+  imageUrl     String
+  title        String
+  description  String
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model AboutWhatWeDo {
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String
+  icon         String   @default("HelpCircle")
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model AboutEvent {
+  id           Int      @id @default(autoincrement())
+  title        String
+  tag          String   @default("Championship")
+  badge        String   @default("Achievement")
+  description  String
+  date         String
+  location     String
+  imageUrl     String?
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
