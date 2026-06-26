@@ -15,6 +15,7 @@ import {
   Moon,
   Sun,
   Home,
+  Info,
 } from "lucide-react";
 import { AnimatedMenuButton } from "@/components/AnimatedMenuButton";
 import { signOut } from "next-auth/react";
@@ -25,6 +26,7 @@ const navItems = [
   { path: "/admin/segments", icon: Swords, label: "Segments" },
   { path: "/admin/schedule", icon: Calendar, label: "Schedule" },
   { path: "/admin/content", icon: LayoutTemplate, label: "Content" },
+  { path: "/admin/about", icon: Info, label: "About Us" },
   { path: "/admin/settings", icon: Settings, label: "Settings" },
 ];
 

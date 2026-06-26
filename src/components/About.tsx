@@ -4,7 +4,15 @@ import { motion } from 'motion/react';
 import { Play, Zap, Award, Globe } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
-export const About = () => {
+interface AboutProps {
+  data?: {
+    title?: string;
+    content?: string;
+    imageUrl?: string;
+  };
+}
+
+export const About = ({ data }: AboutProps) => {
   return (
     <section id="about" className="py-28 relative overflow-hidden">
       {/* ── Unique editorial atmosphere ── */}
@@ -140,7 +148,7 @@ export const About = () => {
                   }}
                 />
                 <ImageWithFallback
-                  src="https://images.unsplash.com/photo-1712971724897-a9ae95e0ec44?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb2JvdCUyMHJlbmRlciUyMDNkfGVufDF8fHx8MTc3NjUzODIwNXww&ixlib=rb-4.1.0&q=80&w=1080"
+                  src={data?.imageUrl || "https://images.unsplash.com/photo-1712971724897-a9ae95e0ec44?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb2JvdCUyMHJlbmRlciUyMDNkfGVufDF8fHx8MTc3NjUzODIwNXww&ixlib=rb-4.1.0&q=80&w=1080"}
                   alt="Robotic 3D Render"
                   className="w-full h-full object-cover transform scale-105 group-hover:scale-100 transition-transform duration-1000 grayscale group-hover:grayscale-0"
                 />
@@ -187,11 +195,11 @@ export const About = () => {
               className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.08] mb-7"
               style={{ color: 'var(--text-heading)', fontFamily: "'Space Grotesk', sans-serif" }}
             >
-              Where Bangladesh's Best Engineers Compete.
+              {data?.title || "Where Bangladesh's Best Engineers Compete."}
             </h2>
 
             <p className="text-lg mb-8 leading-relaxed" style={{ color: 'var(--text-body)' }}>
-              ARC 3.0 2025 isn't just an event — it's a proving ground. We bring together the most brilliant minds across universities to solve complex engineering challenges, push the boundaries of autonomous systems, and showcase the future of robotics.
+              {data?.content || "ARC 3.0 2025 isn't just an event — it's a proving ground. We bring together the most brilliant minds across universities to solve complex engineering challenges, push the boundaries of autonomous systems, and showcase the future of robotics."}
             </p>
 
             {/* Glass tag pills */}

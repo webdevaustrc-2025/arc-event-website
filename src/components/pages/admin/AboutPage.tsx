@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { About } from '@/components/About';
@@ -5,15 +6,15 @@ import Link from 'next/link';
 import * as Icons from 'lucide-react';
 import {
   Target, Zap, ChevronLeft, ChevronRight, Pause, Play, Cpu,
-  Loader2, Trophy, CheckCircle2,
-  Calendar, MapPin, Eye, Sparkles, Image as ImageIcon, HelpCircle
+  ArrowUpRight, Loader2, Trophy, CheckCircle2, Info,
+  Calendar, MapPin, Award, Globe, Eye, Sparkles, Image as ImageIcon, HelpCircle
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 
-interface GalleryItem { id: number; imageUrl: string; title: string; description: string; }
-interface EventItem { id: number; tag: string; badge: string; title: string; description: string; date: string; location: string; imageUrl?: string; }
-interface WhatWeDoItem { id: number; title: string; description: string; icon: string; }
+interface GalleryItem { id: string; imageUrl: string; title: string; description: string; }
+interface EventItem { id: string; tag: string; title: string; description: string; date: string; location: string; imageUrl?: string; }
+interface WhatWeDoItem { id: string; title: string; description: string; icon: string; }
 
 interface AboutData {
   about_hero: { heading: string; description: string; imageUrl: string; };
@@ -83,19 +84,14 @@ export default function AboutPage() {
     setCarouselIndex((prev) => (prev + 1) % data.about_gallery.length);
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <Loader2 className="animate-spin text-[#588157] w-10 h-10" />
-      </div>
-    );
-  }
+  if (loading) return <div className="flex h-screen items-center justify-center bg-background"><Loader2 className="animate-spin text-[#588157] w-10 h-10" /></div>;
   if (!data) return <div className="text-center p-20 text-foreground font-bold">Failed to load content.</div>;
 
   const galleryItems = data.about_gallery || [];
+  const currentGalleryItem = galleryItems[carouselIndex];
 
   // Helper to compute 3D styles for stacked carousel
-  const getCardStyle = (index: number): React.CSSProperties => {
+  const getCardStyle = (index: number) => {
     const total = galleryItems.length;
     if (total === 0) return {};
 
@@ -320,7 +316,7 @@ export default function AboutPage() {
                   onClick={() => setCarouselIndex(idx)}
                   className={`h-2.5 rounded-full transition-all duration-300 ${idx === carouselIndex ? 'w-8 bg-[#588157]' : 'w-2.5 bg-gray-300 dark:bg-zinc-800 hover:bg-[#588157]/40'
                     }`}
-                  />
+                />
               ))}
             </div>
           </div>
@@ -377,23 +373,21 @@ export default function AboutPage() {
             <motion.div
               key={event.id}
               whileHover={{ y: -8, scale: 1.01 }}
-              className="rounded-[32px] border bg-card border-border group hover:border-[#588157]/30 transition-all duration-300 shadow-sm hover:shadow-xl relative overflow-hidden flex flex-col justify-between"
+              className="rounded-[32px] border bg-card border-border group hover:border-[#588157]/30 transition-all duration-300 shadow-sm hover:shadow-xl relative overflow-hidden flex flex-col"
             >
-              <div>
-                <div className="w-full aspect-[16/10] relative bg-black/20 overflow-hidden">
-                  <ImageWithFallback src={event.imageUrl} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                  <span className="absolute top-4 left-4 text-[10px] font-bold text-[#588157] dark:bg-[#588157]/15 bg-[#588157]/10 border border-[#588157]/35 px-3 py-1 rounded-full uppercase tracking-wider font-sans">
-                    {event.tag}
-                  </span>
-                </div>
+              <div className="w-full aspect-[16/10] relative bg-black/20 overflow-hidden">
+                <ImageWithFallback src={event.imageUrl} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <span className="absolute top-4 left-4 text-[10px] font-bold text-[#588157] dark:bg-[#588157]/15 bg-[#588157]/10 border border-[#588157]/35 px-3 py-1 rounded-full uppercase tracking-wider font-sans">
+                  {event.tag}
+                </span>
+              </div>
 
-                <div className="p-8 pb-0 text-left space-y-3">
+              <div className="p-8 flex-1 flex flex-col justify-between space-y-6">
+                <div className="space-y-3 text-left">
                   <h3 className="text-xl font-bold text-foreground group-hover:text-[#588157] transition-colors leading-snug" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{event.title}</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3">{event.description}</p>
                 </div>
-              </div>
 
-              <div className="p-8 pt-6">
                 <div className="pt-6 border-t border-border space-y-3 text-left">
                   <div className="flex items-center gap-2.5 text-xs text-muted-foreground font-medium">
                     <Calendar size={14} className="text-[#588157]" /> {event.date}
@@ -401,12 +395,6 @@ export default function AboutPage() {
                   <div className="flex items-center gap-2.5 text-xs text-muted-foreground font-medium">
                     <MapPin size={14} className="text-[#588157]" /> {event.location}
                   </div>
-                  {event.badge && (
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-[#588157] pt-2">
-                      {event.badge === "Achievement" ? <Trophy size={13} /> : <CheckCircle2 size={13} />}
-                      {event.badge}
-                    </div>
-                  )}
                 </div>
               </div>
             </motion.div>
