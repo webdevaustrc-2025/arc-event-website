@@ -9,24 +9,31 @@ export default async function Page() {
   let reviews: any[] = [];
 
   try {
-    segments = await prisma.segment.findMany({
-      where: { status: "active" },
-      orderBy: { id: "asc" },
-    });
-    sponsors = await prisma.sponsor.findMany({
-      orderBy: { displayOrder: "asc" },
-    });
-    pastEvents = await prisma.pastEvent.findMany({
-      orderBy: { date: "desc" },
-    });
-    faqs = await prisma.fAQ.findMany({
-      orderBy: { displayOrder: "asc" },
-    });
-    if (prisma.review) {
-      reviews = await prisma.review.findMany({
-        orderBy: { displayOrder: "asc" },
-      });
-    }
+    const [segmentsData, sponsorsData, pastEventsData, faqsData, reviewsData] =
+      await Promise.all([
+        prisma.segment.findMany({
+          where: { status: "active" },
+          orderBy: { id: "asc" },
+        }),
+        prisma.sponsor.findMany({
+          orderBy: { displayOrder: "asc" },
+        }),
+        prisma.pastEvent.findMany({
+          orderBy: { date: "desc" },
+        }),
+        prisma.fAQ.findMany({
+          orderBy: { displayOrder: "asc" },
+        }),
+        prisma.review
+          ? prisma.review.findMany({ orderBy: { displayOrder: "asc" } })
+          : Promise.resolve([]),
+      ]);
+
+    segments = segmentsData;
+    sponsors = sponsorsData;
+    pastEvents = pastEventsData;
+    faqs = faqsData;
+    reviews = reviewsData;
   } catch (error) {
     console.error("Failed to fetch home page data from database, falling back to dummy data:", error);
   }
