@@ -139,14 +139,21 @@ function escapeCsvValue(value: string | number | undefined | null) {
 }
 
 export default function AdminUsersPage() {
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSegment, setSelectedSegment] = useState("All");
   const [users, setUsers] = useState<AdminUserRow[]>(mockUsers);
   const [loading, setLoading] = useState(false);
 
-  const isDark = theme === "dark";
+  // Avoid hydration mismatch: default to dark (matches ThemeProvider defaultTheme)
+  // until the component mounts and reads the real theme from localStorage
+  const isDark = !mounted || resolvedTheme !== "light";
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const cardBg = isDark
     ? "bg-[#111116] border-white/[0.07]"
